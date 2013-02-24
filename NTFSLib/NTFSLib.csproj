@@ -32,16 +32,53 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Enums\AttributeFlags.cs" />
+    <Compile Include="Objects\Attributes\Attribute.cs" />
+    <Compile Include="Objects\Attributes\AttributeBitmap.cs" />
+    <Compile Include="Objects\Attributes\AttributeData.cs" />
+    <Compile Include="Objects\Attributes\AttributeExtendedAttributeInformation.cs" />
+    <Compile Include="Objects\Attributes\AttributeExtendedAttriubtes.cs" />
+    <Compile Include="Objects\Attributes\AttributeFileName.cs" />
+    <Compile Include="Objects\Attributes\AttributeGeneric.cs" />
+    <Compile Include="Objects\Attributes\AttributeIndexAllocation.cs" />
+    <Compile Include="Objects\Attributes\AttributeIndexRoot.cs" />
+    <Compile Include="Objects\Attributes\AttributeList.cs" />
+    <Compile Include="Objects\Attributes\AttributeListItem.cs" />
+    <Compile Include="Objects\Attributes\AttributeLoggedUtilityStream.cs" />
+    <Compile Include="Objects\Headers\AttributeNonResidentHeader.cs" />
+    <Compile Include="Objects\Attributes\AttributeObjectId.cs" />
+    <Compile Include="Objects\Enums\AttributeResidentAllow.cs" />
+    <Compile Include="Objects\Headers\AttributeResidentHeader.cs" />
+    <Compile Include="Objects\Attributes\AttributeSecurityDescriptor.cs" />
+    <Compile Include="Objects\Attributes\AttributeStandardInformation.cs" />
+    <Compile Include="Objects\Attributes\AttributeVolumeInformation.cs" />
+    <Compile Include="Objects\Attributes\AttributeVolumeName.cs" />
+    <Compile Include="Objects\Enums\AttributeType.cs" />
+    <Compile Include="Objects\DiskProvider.cs" />
+    <Compile Include="Objects\Enums\FileEntryFlags.cs" />
+    <Compile Include="Objects\Specials\BootSector.cs" />
+    <Compile Include="Provider\IMFTProvider.cs" />
+    <Compile Include="Objects\Security\ACE.cs" />
+    <Compile Include="Objects\Security\ACEFlags.cs" />
+    <Compile Include="Objects\Security\ACEType.cs" />
+    <Compile Include="Objects\Security\ACL.cs" />
+    <Compile Include="Objects\DataFragment.cs" />
+    <Compile Include="Objects\ExtendedAttribute.cs" />
+    <Compile Include="Objects\Enums\MFTEAFlags.cs" />
+    <Compile Include="Objects\IndexEntry.cs" />
+    <Compile Include="Objects\Enums\MFTIndexEntryFlags.cs" />
+    <Compile Include="Objects\Enums\MFTIndexRootFlags.cs" />
+    <Compile Include="Objects\FileRecord.cs" />
+    <Compile Include="Objects\FileReference.cs" />
+    <Compile Include="Objects\Enums\ResidentFlag.cs" />
+    <Compile Include="Objects\Enums\VolumeInformationFlags.cs" />
+    <Compile Include="Provider\IDiskProvider.cs" />
     <Compile Include="NTFS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
