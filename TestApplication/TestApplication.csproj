@@ -45,13 +45,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DeviceIOControlLib\DeviceIOControlLib\DeviceIOControlLib.csproj">
-      <Project>{303f50c6-4ebb-45c5-bfea-f5f39caf0410}</Project>
-      <Name>DeviceIOControlLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NTFSLib\NTFSLib.csproj">
       <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
       <Name>NTFSLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RawDiskLib\DeviceIOControlLib\DeviceIOControlLib\DeviceIOControlLib.csproj">
+      <Project>{303f50c6-4ebb-45c5-bfea-f5f39caf0410}</Project>
+      <Name>DeviceIOControlLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\RawDiskLib\RawDiskLib\RawDiskLib.csproj">
       <Project>{5e9aa56e-6428-4ded-97a2-c51c51a6ea89}</Project>
