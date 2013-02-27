@@ -7,10 +7,10 @@ namespace NTFSLib.Objects.Attributes
 {
     public class AttributeStandardInformation : Attribute
     {
-        public DateTime CTime { get; set; }
-        public DateTime ATime { get; set; }
-        public DateTime MTime { get; set; }
-        public DateTime RTime { get; set; }
+        public DateTime TimeCreated { get; set; }
+        public DateTime TimeModified { get; set; }
+        public DateTime TimeMftModified { get; set; }
+        public DateTime TimeAccessed { get; set; }
         public FileAttributes DosPermissions { get; set; }
         public uint MaxmiumVersions { get; set; }
         public uint VersionNumber { get; set; }
@@ -34,10 +34,10 @@ namespace NTFSLib.Objects.Attributes
 
             Debug.Assert(maxLength >= 48);
 
-            CTime = Utils.FromWinFileTime(data, offset);
-            ATime = Utils.FromWinFileTime(data, offset + 8);
-            MTime = Utils.FromWinFileTime(data, offset + 16);
-            RTime = Utils.FromWinFileTime(data, offset + 24);
+            TimeCreated = Utils.FromWinFileTime(data, offset);
+            TimeModified = Utils.FromWinFileTime(data, offset + 8);
+            TimeMftModified = Utils.FromWinFileTime(data, offset + 16);
+            TimeAccessed = Utils.FromWinFileTime(data, offset + 24);
             DosPermissions = (FileAttributes)BitConverter.ToUInt32(data, offset + 32);
 
             MaxmiumVersions = BitConverter.ToUInt32(data, offset + 36);
