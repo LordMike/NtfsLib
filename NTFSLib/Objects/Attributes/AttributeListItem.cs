@@ -29,6 +29,8 @@ namespace NTFSLib.Objects.Attributes
             res.StartingVCN = BitConverter.ToUInt64(data, offset + 8);
             res.BaseFile = new FileReference(BitConverter.ToUInt64(data, offset + 16));
             res.AttributeId = BitConverter.ToUInt16(data, offset + 24);
+
+            Debug.Assert(maxLength >= res.NameOffset + res.NameLength * 2);
             res.Name = Encoding.Unicode.GetString(data, offset + res.NameOffset, res.NameLength * 2);
 
             return res;

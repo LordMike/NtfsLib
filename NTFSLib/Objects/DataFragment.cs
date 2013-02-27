@@ -21,7 +21,7 @@ namespace NTFSLib.Objects
 
         public int ThisObjectLength { get; private set; }
 
-        public static DataFragment ParseData(byte[] data, int offset = 0)
+        public static DataFragment ParseData(byte[] data, ulong previousLcn, int offset)
         {
             DataFragment res = new DataFragment();
 
@@ -37,6 +37,15 @@ namespace NTFSLib.Objects
                 return res;
             }
 
+            // Is it a negative value?
+            bool isNegative = false;
+            if ((countBytes & 0x08) == 0x08)                // 0x08: 0000 1000
+            {
+                // Reset countBytes (remove the high bit)
+                countBytes = (byte)(countBytes & 0xF7);    // 0xF7: 1111 0111
+                isNegative = true;
+            }
+
             Debug.Assert(countBytes <= 8, "Fragment metadata exceeded 8 bytes");
             Debug.Assert(offsetBytes <= 8, "Fragment metadata exceeded 8 bytes");
 
@@ -44,6 +53,7 @@ namespace NTFSLib.Objects
             Array.Copy(data, offset + 1, tmpData, 0, countBytes);
 
             res.ClusterCount = BitConverter.ToUInt64(tmpData, 0);
+            res.LCN = previousLcn;
 
             if (offsetBytes == 0)
             {
@@ -55,7 +65,11 @@ namespace NTFSLib.Objects
                 // Data chunk
                 Array.Clear(tmpData, 0, tmpData.Length);
                 Array.Copy(data, offset + 1 + countBytes, tmpData, 0, offsetBytes);
-                res.LCN = BitConverter.ToUInt64(tmpData, 0);
+
+                if (isNegative)
+                    res.LCN -= BitConverter.ToUInt64(tmpData, 0);
+                else
+                    res.LCN += BitConverter.ToUInt64(tmpData, 0);
             }
 
             return res;

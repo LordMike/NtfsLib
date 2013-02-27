@@ -85,7 +85,7 @@ namespace NTFSLib.Objects
 
                 Debug.Assert(attribOffset + length <= maxLength);
 
-                Attribute attrib = Attribute.ParseSingleAttribute(data, attribOffset);
+                Attribute attrib = Attribute.ParseSingleAttribute(data, (int) length, attribOffset);
                 Attributes.Add(attrib);
 
                 attribOffset += attrib.TotalLength;

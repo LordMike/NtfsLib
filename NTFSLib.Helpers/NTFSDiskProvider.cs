@@ -13,6 +13,11 @@ namespace NTFSLib.Helpers
             _disk = disk;
         }
 
+        public bool IsFile
+        {
+            get { return false; }
+        }
+
         public bool CanReadBytes(ulong offset, int bytes)
         {
             if (bytes <= 0)

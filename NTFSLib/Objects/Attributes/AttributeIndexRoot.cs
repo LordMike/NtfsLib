@@ -45,9 +45,6 @@ namespace NTFSLib.Objects.Attributes
             SizeOfIndexAllocated = BitConverter.ToUInt32(data, offset + 24);
             IndexFlags = (MFTIndexRootFlags)data[offset + 28];
 
-            //if (IndexFlags == MFTIndexRootFlags.LargeIndex)
-            //    Debugger.Break();
-
             List<IndexEntry> entries = new List<IndexEntry>();
 
             // Parse entries

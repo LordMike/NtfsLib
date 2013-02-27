@@ -34,10 +34,10 @@ namespace NTFSLib.Objects.Attributes
 
             Debug.Assert(maxLength >= 48);
 
-            CTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset));
-            ATime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 8));
-            MTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 16));
-            RTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 24));
+            CTime = Utils.FromWinFileTime(data, offset);
+            ATime = Utils.FromWinFileTime(data, offset + 8);
+            MTime = Utils.FromWinFileTime(data, offset + 16);
+            RTime = Utils.FromWinFileTime(data, offset + 24);
             DosPermissions = (FileAttributes)BitConverter.ToUInt32(data, offset + 32);
 
             MaxmiumVersions = BitConverter.ToUInt32(data, offset + 36);

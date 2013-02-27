@@ -31,8 +31,6 @@ namespace NTFSLib.Objects.Attributes
         {
             base.ParseAttributeResidentBody(data, maxLength, offset);
 
-            Debug.Assert(ResidentHeader.ContentLength <= maxLength);
-
             DataBytes = new byte[ResidentHeader.ContentLength];
             Array.Copy(data, offset, DataBytes, 0, DataBytes.Length);
         }

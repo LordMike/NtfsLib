@@ -61,10 +61,10 @@ namespace NTFSLib.Objects.Attributes
             HasChildren = data[36];
 
             USNNumber = new byte[2];
-            Array.Copy(data, 40, USNNumber, 0, 2);
+            Array.Copy(data, OffsetToUSN, USNNumber, 0, 2);
 
             USNData = new byte[USNSizeWords * 2];
-            Array.Copy(data, OffsetToUSN, USNData, 0, USNSizeWords * 2);
+            Array.Copy(data, OffsetToUSN + 2, USNData, 0, USNSizeWords * 2);
 
             // TODO: Automatically determine sector size
             // Patch USN Data

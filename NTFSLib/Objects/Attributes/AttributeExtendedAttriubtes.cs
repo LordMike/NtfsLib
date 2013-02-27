@@ -6,7 +6,7 @@ namespace NTFSLib.Objects.Attributes
 {
     public class AttributeExtendedAttriubtes : Attribute
     {
-        public ExtendedAttribute[] EAs { get; set; }
+        public ExtendedAttribute[] ExtendedAttributes { get; set; }
 
         public override AttributeResidentAllow AllowedResidentStates
         {
@@ -22,18 +22,18 @@ namespace NTFSLib.Objects.Attributes
 
             Debug.Assert(maxLength >= 8);
 
-            List<ExtendedAttribute> eas = new List<ExtendedAttribute>();
+            List<ExtendedAttribute> extendedAttributes = new List<ExtendedAttribute>();
             int pointer = offset;
             do
             {
                 ExtendedAttribute ea = ExtendedAttribute.ParseData(data, (int) ResidentHeader.ContentLength, pointer);
 
-                eas.Add(ea);
+                extendedAttributes.Add(ea);
 
                 pointer +=(int) ea.Size;
             } while (pointer <= offset + maxLength);
 
-            EAs = eas.ToArray();
+            ExtendedAttributes = extendedAttributes.ToArray();
         }
     }
 }

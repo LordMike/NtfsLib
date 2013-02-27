@@ -65,8 +65,11 @@ namespace NTFSLib.Objects.Attributes
             Debug.Assert(AllowedResidentStates.HasFlag(AttributeResidentAllow.NonResident));
         }
 
-        public static Attribute ParseSingleAttribute(byte[] data, int offset = 0)
+        public static Attribute ParseSingleAttribute(byte[] data, int maxLength, int offset = 0)
         {
+            Debug.Assert(data.Length - offset >= maxLength);
+            Debug.Assert(0 <= offset && offset <= data.Length);
+
             AttributeType type = GetType(data, offset);
 
             if (type == AttributeType.EndOfAttributes)
@@ -151,7 +154,9 @@ namespace NTFSLib.Objects.Attributes
 
                 int bodyOffset = offset + res.ResidentHeader.ContentOffset;
                 int length = offset + res.TotalLength - bodyOffset;
+
                 Debug.Assert(length >= res.ResidentHeader.ContentLength);
+                Debug.Assert(offset + maxLength >= bodyOffset + length);
 
                 res.ParseAttributeResidentBody(data, length, bodyOffset);
             }
@@ -162,12 +167,11 @@ namespace NTFSLib.Objects.Attributes
                 res.NonResidentHeader = AttributeNonResidentHeader.ParseHeader(res, data, offset + 16);
 
                 int bodyOffset = offset + res.NonResidentHeader.ListOffset;
-                int length = offset + res.TotalLength - bodyOffset;
-                //Debug.Assert(offset + res.TotalLength - bodyOffset >= res.NonResidentHeader);
+                int length = res.TotalLength - res.NonResidentHeader.ListOffset;
+
+                Debug.Assert(offset + maxLength >= bodyOffset + length);
 
                 res.NonResidentHeader.NonResidentFragments = ParseFragments(res.NonResidentHeader, data, length, bodyOffset);
-
-                //res.ParseAttributeResidentBody(data, offset + res.TotalLength - bodyOffset, bodyOffset);
             }
             else
             {
@@ -192,7 +196,7 @@ namespace NTFSLib.Objects.Attributes
             {
                 Debug.Assert(pointer <= offset + maxLength);
 
-                DataFragment fragment = DataFragment.ParseData(data, pointer);
+                DataFragment fragment = DataFragment.ParseData(data, lastLcn, pointer);
 
                 pointer += fragment.ThisObjectLength;
 
@@ -200,7 +204,6 @@ namespace NTFSLib.Objects.Attributes
                     // Last fragment
                     break;
 
-                fragment.LCN += lastLcn;
                 fragment.StartingVCN = vcn;
 
                 vcn += fragment.ClusterCount;

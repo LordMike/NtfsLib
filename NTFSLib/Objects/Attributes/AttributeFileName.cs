@@ -33,19 +33,20 @@ namespace NTFSLib.Objects.Attributes
         {
             base.ParseAttributeResidentBody(data, maxLength, offset);
 
-            Debug.Assert(maxLength >= 66 + FilenameLength * 2);
-
             ParentDirectory = new FileReference(BitConverter.ToUInt64(data, offset));
-            CTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 8));
-            ATime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 16));
-            MTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 24));
-            RTime = DateTime.FromFileTimeUtc(BitConverter.ToInt64(data, offset + 32));
+            CTime = Utils.FromWinFileTime(data, offset + 8);
+            ATime = Utils.FromWinFileTime(data, offset + 16);
+            MTime = Utils.FromWinFileTime(data, offset + 24);
+            RTime = Utils.FromWinFileTime(data, offset + 32);
             AllocatedSize = BitConverter.ToUInt64(data, offset + 40);
             RealSize = BitConverter.ToUInt64(data, offset + 48);
             FileFlags = (FileAttributes)BitConverter.ToUInt32(data, offset + 56);
             ReservedEAsReparse = BitConverter.ToUInt32(data, offset + 60);
             FilenameLength = data[offset + 64];
             FilenameNamespace = data[offset + 65];
+
+            Debug.Assert(maxLength >= 66 + FilenameLength * 2);
+
             FileName = Encoding.Unicode.GetString(data, offset + 66, FilenameLength * 2);
         }
     }
