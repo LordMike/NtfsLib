@@ -187,6 +187,7 @@ namespace NTFSLib.Objects.Attributes
             ulong vcn = header.StartingVCN;
 
             int pointer = offset;
+            ulong lastLcn = 0;
             while (true)
             {
                 Debug.Assert(pointer <= offset + maxLength);
@@ -199,8 +200,12 @@ namespace NTFSLib.Objects.Attributes
                     // Last fragment
                     break;
 
+                fragment.LCN += lastLcn;
                 fragment.StartingVCN = vcn;
+
                 vcn += fragment.ClusterCount;
+                lastLcn = fragment.LCN;
+
                 fragments.Add(fragment);
             }
 

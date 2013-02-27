@@ -25,6 +25,10 @@ namespace NTFSLib.Objects
             res.NameLength = data[offset + 5];
             res.ValueLength = BitConverter.ToUInt16(data, offset + 6);
 
+            Debug.Assert(res.Size <= maxLength);
+            Debug.Assert(res.NameLength <= res.Size);
+            Debug.Assert(res.ValueLength <= res.Size);
+
             res.Name = Encoding.Unicode.GetString(data, offset + 8, res.NameLength);
             res.Value = new byte[res.ValueLength];
             Array.Copy(data, offset + 8 + res.NameLength, res.Value, 0, res.ValueLength);
