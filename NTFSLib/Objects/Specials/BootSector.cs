@@ -31,30 +31,12 @@ namespace NTFSLib.Objects.Specials
             Debug.Assert(data.Length - offset >= 512);
             Debug.Assert(0 <= offset && offset <= data.Length);
 
-            //0x0000	3	Jump to the boot loader routine
-            //0x0003	8	System Id: "NTFS    "
-            //0x000B	2	Bytes per sector
-            //0x000D	1	Sectors per cluster
-            //0x000E	7	Unused
-            //0x0015	1	Media descriptor (a)
-            //0x0016	2	Unused
-            //0x0018	2	Sectors per track
-            //0x001A	2	Number of heads
-            //0x001C	8	Unused
-            //0x0024	4	Usually 80 00 80 00 (b)
-            //0x0028	8	Number of sectors in the volume
-            //0x0030	8	LCN of VCN 0 of the $MFT
-            //0x0038	8	LCN of VCN 0 of the $MFTMirr
-            //0x0040	4	Clusters per MFT Record (c)
-            //0x0044	4	Clusters per Index Record (c)
-            //0x0048	8	Volume serial number
-
             BootSector res = new BootSector();
 
             res.JmpInstruction = new byte[3];
             Array.Copy(data, offset, res.JmpInstruction, 0, 3);
 
-            res.OEMCode = Encoding.ASCII.GetString(data, offset + 3, 8);
+            res.OEMCode = Encoding.ASCII.GetString(data, offset + 3, 8).Trim();
             res.BytesPrSector = BitConverter.ToUInt16(data, offset + 11);
             res.SectorsPrCluster = data[offset + 13];
             res.ReservedSectors = BitConverter.ToUInt16(data, offset + 14);
