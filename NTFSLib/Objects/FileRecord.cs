@@ -34,6 +34,8 @@ namespace NTFSLib.Objects
             return BitConverter.ToUInt32(data, offset + 28);
         }
 
+        public FileReference FileReference { get; set; }
+
         public bool IsExtensionRecord
         {
             get { return BaseFile.RawId != 0; }
@@ -69,6 +71,8 @@ namespace NTFSLib.Objects
 
             res.USNData = new byte[res.USNSizeWords * 2];
             Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNSizeWords * 2);
+
+            res.FileReference = new FileReference(res.MFTNumber, res.SequenceNumber);
 
             return res;
         }

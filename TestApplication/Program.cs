@@ -13,8 +13,9 @@ namespace TestApplication
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
             NTFS ntfs = new NTFS(provider);
+            ntfs.InitializeCommon();
 
-
+            Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
             Console.WriteLine("Done.");
             Console.ReadLine();

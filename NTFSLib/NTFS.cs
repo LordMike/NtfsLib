@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
@@ -19,7 +20,7 @@ namespace NTFSLib
         {
             Provider = provider;
 
-            Initialize();
+            InitializeNTFS();
         }
 
         public ulong BytesPrCluster
@@ -31,11 +32,23 @@ namespace NTFSLib
         public uint FileRecordCount { get; private set; }
 
         public BootSector Boot { get; private set; }
-        public FileRecord FileMft { get; private set; }
+        public FileRecord FileMFT { get; private set; }
+        public FileRecord FileMFTMirr { get; private set; }
+        public FileRecord FileLogFile { get; private set; }
+        public FileRecord FileVolume { get; private set; }
+        public FileRecord FileAttrDef { get; private set; }
+        public FileRecord FileRootDir { get; private set; }
+        public FileRecord FileBitmap { get; private set; }
+        public FileRecord FileBoot { get; private set; }
+        public FileRecord FileBadClus { get; private set; }
+        //public FileRecord FileQuota { get; private set; }
+        public FileRecord FileSecure { get; private set; }
+        public FileRecord FileUpCase { get; private set; }
+        public FileRecord FileExtend { get; private set; }
 
         public Version NTFSVersion { get; private set; }
 
-        private void Initialize()
+        private void InitializeNTFS()
         {
             // Read $BOOT
             if (Provider.IsFile)
@@ -58,18 +71,20 @@ namespace NTFSLib
 
             // Read $MFT file record
             {
-                byte[] data = ReadMFTRecordData(0);
-                FileMft = ParseMFTRecord(data);
+                byte[] data = ReadMFTRecordData((uint)SpecialMFTFiles.MFT);
+                FileMFT = ParseMFTRecord(data);
             }
 
-            Debug.Assert(FileMft.Attributes.Count(s => s.Type == AttributeType.DATA) == 1);
-            AttributeData fileMftData = FileMft.Attributes.OfType<AttributeData>().Single();
+            Debug.Assert(FileMFT.Attributes.Count(s => s.Type == AttributeType.DATA) == 1);
+            AttributeData fileMftData = FileMFT.Attributes.OfType<AttributeData>().Single();
             Debug.Assert(fileMftData.NonResidentFlag == ResidentFlag.NonResident);
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
 
             // Get number of FileRecords 
             FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => (decimal)(s.ClusterCount * BytesPrCluster)) / BytesPrFileRecord);
             FileRecords = new WeakReference[FileRecordCount];
+
+            FileRecords[0] = new WeakReference(FileMFT);
 
             // Read $VOLUME file record
             FileRecord fileVolume = ReadMFTRecord(SpecialMFTFiles.Volume);
@@ -82,13 +97,33 @@ namespace NTFSLib
 
                 NTFSVersion = new Version(attrib.MajorVersion, attrib.MinorVersion);
             }
+        }
 
+        public void InitializeCommon()
+        {
             // Read primary records
-            for (uint i = 0; i < 24; i++)
-            {
-                ReadMFTRecord(i);
-            }
+            FileMFTMirr = ReadMFTRecord(SpecialMFTFiles.MFTMirr);
+            FileLogFile = ReadMFTRecord(SpecialMFTFiles.LogFile);
+            FileVolume = ReadMFTRecord(SpecialMFTFiles.Volume);
+            FileAttrDef = ReadMFTRecord(SpecialMFTFiles.AttrDef);
+            FileRootDir = ReadMFTRecord(SpecialMFTFiles.RootDir);
+            FileBitmap = ReadMFTRecord(SpecialMFTFiles.Bitmap);
+            FileBoot = ReadMFTRecord(SpecialMFTFiles.Boot);
+            FileBadClus = ReadMFTRecord(SpecialMFTFiles.BadClus);
+            //FileQuota = ReadMFTRecord(SpecialMFTFiles.Quota);
+            FileSecure = ReadMFTRecord(SpecialMFTFiles.Secure);
+            FileUpCase = ReadMFTRecord(SpecialMFTFiles.UpCase);
+            FileExtend = ReadMFTRecord(SpecialMFTFiles.Extend);
 
+            // Read extended data
+            foreach (SpecialMFTFiles specialMFTFile in Enum.GetValues(typeof(SpecialMFTFiles)).OfType<SpecialMFTFiles>())
+            {
+                WeakReference item = FileRecords[(int) specialMFTFile];
+                if (item != null && item.IsAlive)
+                {
+                    ParseAttributeLists((FileRecord) item.Target);
+                }
+            }
         }
 
         private void RefreshFileRecordSize()
@@ -108,6 +143,34 @@ namespace NTFSLib
             BytesPrFileRecord = FileRecord.ParseAllocatedSize(data, 0);
 
             Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
+        }
+
+        private void ParseAttributeLists(FileRecord record)
+        {
+            while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
+            {
+                AttributeList listAttr = record.Attributes.OfType<AttributeList>().First();
+
+                foreach (AttributeListItem item in listAttr.Items)
+                {
+                    if (item.BaseFile.Equals(record.FileReference))
+                        // Skip own attributes
+                        continue;
+
+                    FileRecord otherRecord = ReadMFTRecord((uint)item.BaseFile.FileId);
+
+                    Debug.Assert(otherRecord.FileReference.Equals(item.BaseFile));
+
+                    List<Attribute> otherAttrib = otherRecord.Attributes.Where(s => s.Id == item.AttributeId).ToList();
+
+                    Debug.Assert(otherAttrib.Count == 1);
+                    Debug.Assert(otherAttrib[0].Type == item.Type);
+
+                    record.Attributes.AddRange(otherAttrib);
+                }
+
+                record.Attributes.Remove(listAttr);
+            }
         }
 
         private FileRecord ReadMFTRecord(SpecialMFTFiles file)
@@ -161,7 +224,7 @@ namespace NTFSLib
                 // Is a continous file - ignore MFT fragments
                 offset = (ulong)(number * length);
             }
-            else if (FileMft == null)
+            else if (FileMFT == null)
             {
                 // We haven't got the $MFT yet, ignore MFT fragments
                 offset = (ulong)(number * length + (decimal)(Boot.MFTCluster * BytesPrCluster));
@@ -169,7 +232,7 @@ namespace NTFSLib
             else
             {
                 // Find fragment(s)
-                AttributeData dataAttribute = FileMft.Attributes.OfType<AttributeData>().First();
+                AttributeData dataAttribute = FileMFT.Attributes.OfType<AttributeData>().First();
 
                 Debug.Assert(dataAttribute.NonResidentFlag == ResidentFlag.NonResident);
 

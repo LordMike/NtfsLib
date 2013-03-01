@@ -1,6 +1,6 @@
 ﻿namespace NTFSLib.Objects.Enums
 {
-    public enum SpecialMFTFiles
+    public enum SpecialMFTFiles : uint
     {
         MFT = 0,
         MFTMirr = 1,
