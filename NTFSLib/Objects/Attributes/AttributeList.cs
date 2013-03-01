@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using NTFSLib.Objects.Enums;
-using NTFSLib.Provider;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -42,23 +41,13 @@ namespace NTFSLib.Objects.Attributes
             Items = results.ToArray();
         }
 
-        internal override void ParseAttributeNonResidentBody(IMFTProvider provider)
+        internal override void ParseAttributeNonResidentBody(NTFS ntfs)
         {
-            base.ParseAttributeNonResidentBody(provider);
-
-            byte[] data = new byte[NonResidentHeader.ContentSize];
+            base.ParseAttributeNonResidentBody(ntfs);
 
             // Get all chunks
-            foreach (DataFragment fragment in NonResidentHeader.NonResidentFragments)
-            {
-                byte[] fragmentData = provider.Read(fragment.LCN, (int)fragment.ClusterCount);
-
-                int clusterSize = fragmentData.Length / (int)fragment.ClusterCount;
-                int destinationOffset = (int)fragment.StartingVCN * clusterSize;
-
-                Array.Copy(fragmentData, 0, data, destinationOffset, Math.Min(fragmentData.Length, data.Length - destinationOffset));
-            }
-
+            byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+            
             // Parse
             List<AttributeListItem> results = new List<AttributeListItem>();
 
@@ -70,10 +59,15 @@ namespace NTFSLib.Objects.Attributes
                 if (item.Type == AttributeType.EndOfAttributes)
                     break;
 
+                if (item.Length == 0)
+                    break;
+
                 results.Add(item);
 
                 pointer += item.Length;
             }
+
+            Debug.Assert(pointer == (int) NonResidentHeader.ContentSize);
 
             Items = results.ToArray();
         }

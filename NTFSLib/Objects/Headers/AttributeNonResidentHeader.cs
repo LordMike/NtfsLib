@@ -36,6 +36,6 @@ namespace NTFSLib.Objects.Headers
             return res;
         }
 
-        public DataFragment[] NonResidentFragments { get; set; }
+        public DataFragment[] Fragments { get; set; }
     }
 }

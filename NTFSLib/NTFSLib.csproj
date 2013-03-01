@@ -60,7 +60,6 @@
     <Compile Include="Objects\DiskProvider.cs" />
     <Compile Include="Objects\Enums\FileEntryFlags.cs" />
     <Compile Include="Objects\Specials\BootSector.cs" />
-    <Compile Include="Provider\IMFTProvider.cs" />
     <Compile Include="Objects\Security\ACE.cs" />
     <Compile Include="Objects\Security\ACEFlags.cs" />
     <Compile Include="Objects\Security\ACEType.cs" />

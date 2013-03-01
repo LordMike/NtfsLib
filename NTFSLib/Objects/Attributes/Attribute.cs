@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
-using NTFSLib.Provider;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -59,10 +58,11 @@ namespace NTFSLib.Objects.Attributes
             Debug.Assert(0 <= offset && offset <= data.Length);
         }
 
-        internal virtual void ParseAttributeNonResidentBody(IMFTProvider provider)
+        internal virtual void ParseAttributeNonResidentBody(NTFS ntfs)
         {
             Debug.Assert(NonResidentFlag == ResidentFlag.NonResident);
             Debug.Assert(AllowedResidentStates.HasFlag(AttributeResidentAllow.NonResident));
+            Debug.Assert(ntfs != null);
         }
 
         public static Attribute ParseSingleAttribute(byte[] data, int maxLength, int offset = 0)
@@ -171,7 +171,7 @@ namespace NTFSLib.Objects.Attributes
 
                 Debug.Assert(offset + maxLength >= bodyOffset + length);
 
-                res.NonResidentHeader.NonResidentFragments = ParseFragments(res.NonResidentHeader, data, length, bodyOffset);
+                res.NonResidentHeader.Fragments = ParseFragments(res.NonResidentHeader, data, length, bodyOffset);
             }
             else
             {

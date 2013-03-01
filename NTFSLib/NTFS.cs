@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
 using NTFSLib.Provider;
-using System.Linq;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib
 {
     public class NTFS
     {
-        private IDiskProvider Provider { get; set; }
+        internal IDiskProvider Provider { get; private set; }
         private WeakReference[] FileRecords { get; set; }
 
         public NTFS(IDiskProvider provider)
@@ -150,6 +150,18 @@ namespace NTFSLib
             while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
             {
                 AttributeList listAttr = record.Attributes.OfType<AttributeList>().First();
+
+                if (listAttr.NonResidentFlag == ResidentFlag.NonResident)
+                {
+                    if (Provider.IsFile)
+                    {
+                        // Nothing to do about this
+                        return;
+                    }
+
+                    // Get data
+                    listAttr.ParseAttributeNonResidentBody(this);
+                }
 
                 foreach (AttributeListItem item in listAttr.Items)
                 {

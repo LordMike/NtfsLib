@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using NTFSLib.Objects.Enums;
 
 namespace NTFSLib.Objects.Attributes
@@ -16,7 +15,7 @@ namespace NTFSLib.Objects.Attributes
         /// </summary>
         public DataFragment[] DataFragments
         {
-            get { return NonResidentHeader.NonResidentFragments; }
+            get { return NonResidentHeader.Fragments; }
         }
 
         public override AttributeResidentAllow AllowedResidentStates
