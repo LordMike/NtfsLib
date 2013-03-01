@@ -47,6 +47,7 @@
     <Compile Include="Objects\Attributes\AttributeList.cs" />
     <Compile Include="Objects\Attributes\AttributeListItem.cs" />
     <Compile Include="Objects\Attributes\AttributeLoggedUtilityStream.cs" />
+    <Compile Include="Objects\Enums\SpecialMFTFiles.cs" />
     <Compile Include="Objects\Headers\AttributeNonResidentHeader.cs" />
     <Compile Include="Objects\Attributes\AttributeObjectId.cs" />
     <Compile Include="Objects\Enums\AttributeResidentAllow.cs" />

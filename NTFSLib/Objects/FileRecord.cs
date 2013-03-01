@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
@@ -30,6 +29,8 @@ namespace NTFSLib.Objects
 
         public static uint ParseAllocatedSize(byte[] data, int offset)
         {
+            Debug.Assert(data.Length - offset >= 4);
+
             return BitConverter.ToUInt32(data, offset + 28);
         }
 
@@ -45,6 +46,8 @@ namespace NTFSLib.Objects
             FileRecord res = new FileRecord();
 
             res.Signature = Encoding.ASCII.GetString(data, offset + 0, 4);
+            Debug.Assert(res.Signature == "FILE");
+
             res.OffsetToUSN = BitConverter.ToUInt16(data, offset + 4);
             res.USNSizeWords = BitConverter.ToUInt16(data, offset + 6);
             res.LogFileUSN = BitConverter.ToUInt64(data, offset + 8);
