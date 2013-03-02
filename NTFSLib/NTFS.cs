@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
@@ -118,10 +119,10 @@ namespace NTFSLib
             // Read extended data
             foreach (SpecialMFTFiles specialMFTFile in Enum.GetValues(typeof(SpecialMFTFiles)).OfType<SpecialMFTFiles>())
             {
-                WeakReference item = FileRecords[(int) specialMFTFile];
+                WeakReference item = FileRecords[(int)specialMFTFile];
                 if (item != null && item.IsAlive)
                 {
-                    ParseAttributeLists((FileRecord) item.Target);
+                    ParseAttributeLists((FileRecord)item.Target);
                 }
             }
         }
@@ -145,7 +146,7 @@ namespace NTFSLib
             Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
         }
 
-        private void ParseAttributeLists(FileRecord record)
+        public void ParseAttributeLists(FileRecord record)
         {
             while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
             {
@@ -185,11 +186,6 @@ namespace NTFSLib
             }
         }
 
-        private FileRecord ReadMFTRecord(SpecialMFTFiles file)
-        {
-            return ReadMFTRecord((uint)file);
-        }
-
         private FileRecord ParseMFTRecord(byte[] data)
         {
             FileRecord record = FileRecord.ParseHeader(data, 0);
@@ -199,7 +195,12 @@ namespace NTFSLib
             return record;
         }
 
-        private FileRecord ReadMFTRecord(uint number)
+        public FileRecord ReadMFTRecord(SpecialMFTFiles file)
+        {
+            return ReadMFTRecord((uint)file);
+        }
+
+        public FileRecord ReadMFTRecord(uint number)
         {
             if (number <= FileRecords.Length && FileRecords[number] != null && FileRecords[number].IsAlive)
             {
@@ -283,6 +284,36 @@ namespace NTFSLib
 
             Debug.WriteLine("Read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
             return Provider.ReadBytes(offset, length);
+        }
+
+        public Stream OpenFileRecord(uint number, string dataStream = "")
+        {
+            return OpenFileRecord(ReadMFTRecord(number), dataStream);
+        }
+
+        public Stream OpenFileRecord(FileRecord record, string dataStream = "")
+        {
+            Debug.Assert(record != null);
+
+            // Fetch extended data
+            ParseAttributeLists(record);
+
+            // Get all DATA attributes
+            List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == dataStream) || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == dataStream)).ToList();
+
+            Debug.Assert(dataAttribs.Count == 1);
+            AttributeData dataAttrib = dataAttribs.First();
+
+            if (dataAttrib.NonResidentFlag == ResidentFlag.Resident)
+            {
+                return new MemoryStream(dataAttrib.DataBytes);
+            }
+
+            Debug.Assert(dataAttrib.NonResidentFlag == ResidentFlag.NonResident);
+
+            DataFragment[] fragments = dataAttrib.DataFragments.OrderBy(s => s.StartingVCN).ToArray();
+
+            return new NtfsDiskStream(this, fragments, (long) dataAttrib.NonResidentHeader.ContentSize);
         }
     }
 }
