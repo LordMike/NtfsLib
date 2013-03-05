@@ -42,14 +42,15 @@ namespace TestApplication
                 if (attributeData.First().NonResidentHeader.ContentSize > 512000000)
                     continue;
 
-                var stream = ntfs.OpenFileRecord(record);
+                Stream stream = ntfs.OpenFileRecord(record);
 
-                byte[] data = new byte[stream.Length];
-                stream.Read(data, 0, data.Length);
+                using (FileStream fsOut = File.OpenWrite(@"E:\Mike\Dropbox\NTFSLib\out.bin"))
+                {
+                    fsOut.SetLength((long) attributeData.First().NonResidentHeader.ContentSize);
 
-                File.WriteAllBytes(@"E:\Mike\Dropbox\NTFSLib\out.bin", data);
+                    stream.CopyTo(fsOut);
+                }
             }
-
 
             Console.WriteLine("Done.");
             Console.ReadLine();

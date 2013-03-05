@@ -301,19 +301,18 @@ namespace NTFSLib
             // Get all DATA attributes
             List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == dataStream) || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == dataStream)).ToList();
 
-            Debug.Assert(dataAttribs.Count == 1);
-            AttributeData dataAttrib = dataAttribs.First();
+            Debug.Assert(dataAttribs.Count >= 1);
 
-            if (dataAttrib.NonResidentFlag == ResidentFlag.Resident)
+            if (dataAttribs.Count == 1 && dataAttribs[0].NonResidentFlag == ResidentFlag.Resident)
             {
-                return new MemoryStream(dataAttrib.DataBytes);
+                return new MemoryStream(dataAttribs[0].DataBytes);
             }
 
-            Debug.Assert(dataAttrib.NonResidentFlag == ResidentFlag.NonResident);
+            Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
 
-            DataFragment[] fragments = dataAttrib.DataFragments.OrderBy(s => s.StartingVCN).ToArray();
+            DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
 
-            return new NtfsDiskStream(this, fragments, (long)dataAttrib.NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(this, fragments, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
     }
 }

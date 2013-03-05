@@ -47,12 +47,13 @@ namespace NTFSLib.Objects.Attributes
 
             // Get all chunks
             byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
-            
+
             // Parse
             List<AttributeListItem> results = new List<AttributeListItem>();
 
             int pointer = 0;
-            while (pointer + 26 <= data.Length)     // 26 is the smallest possible MFTAttributeListItem
+            int contentSize = (int) NonResidentHeader.ContentSize;
+            while (pointer + 26 <= contentSize)     // 26 is the smallest possible MFTAttributeListItem
             {
                 AttributeListItem item = AttributeListItem.ParseListItem(data, data.Length - pointer, pointer);
 
@@ -67,7 +68,7 @@ namespace NTFSLib.Objects.Attributes
                 pointer += item.Length;
             }
 
-            Debug.Assert(pointer == (int) NonResidentHeader.ContentSize);
+            Debug.Assert(pointer == contentSize);
 
             Items = results.ToArray();
         }
