@@ -23,10 +23,12 @@ namespace TestApplication
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
             // Read fragmented file
-            for (uint i = 2116; i < ntfs.FileRecordCount; i++)
+            for (uint i = 28; i < ntfs.FileRecordCount; i++)
             {
                 FileRecord record = ntfs.ReadMFTRecord(i);
                 ntfs.ParseAttributeLists(record);
+
+                Console.WriteLine("Read " + i);
 
                 if (record.BaseFile.RawId != 0)
                     continue;
@@ -42,14 +44,16 @@ namespace TestApplication
                 if (attributeData.First().NonResidentHeader.ContentSize > 512000000)
                     continue;
 
-                Stream stream = ntfs.OpenFileRecord(record);
+                Console.WriteLine("Is a candidate for copying: " + i);
 
-                using (FileStream fsOut = File.OpenWrite(@"E:\Mike\Dropbox\NTFSLib\out.bin"))
-                {
-                    fsOut.SetLength((long) attributeData.First().NonResidentHeader.ContentSize);
+                //Stream stream = ntfs.OpenFileRecord(record);
 
-                    stream.CopyTo(fsOut);
-                }
+                //using (FileStream fsOut = File.OpenWrite(@"E:\Mike\Dropbox\NTFSLib\out.bin"))
+                //{
+                //    fsOut.SetLength((long) attributeData.First().NonResidentHeader.ContentSize);
+
+                //    stream.CopyTo(fsOut);
+                //}
             }
 
             Console.WriteLine("Done.");
