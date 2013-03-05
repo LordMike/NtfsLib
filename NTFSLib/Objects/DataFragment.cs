@@ -70,7 +70,7 @@ namespace NTFSLib.Objects
                 }
 
                 // Is negative?
-                long negativeValue = 128 << 8 * (offsetBytes - 1);
+                long negativeValue = (long)128 << 8 * (offsetBytes - 1);
                 if ((deltaLcn & negativeValue) == negativeValue)
                 {
                     // Negtive

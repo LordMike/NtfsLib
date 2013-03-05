@@ -313,7 +313,7 @@ namespace NTFSLib
 
             DataFragment[] fragments = dataAttrib.DataFragments.OrderBy(s => s.StartingVCN).ToArray();
 
-            return new NtfsDiskStream(this, fragments, (long) dataAttrib.NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(this, fragments, (long)dataAttrib.NonResidentHeader.ContentSize);
         }
     }
 }

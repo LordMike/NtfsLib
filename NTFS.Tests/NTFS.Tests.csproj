@@ -53,6 +53,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DataFragmentActual.cs" />
+    <Compile Include="Helpers\DataFragmentHelpers.cs" />
     <Compile Include="DataFragmentTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
