@@ -86,17 +86,17 @@ namespace NTFSLib
             while (count > 0)
             {
                 DataFragment frag = _fragments[_positionFragment];
-                ulong fragOffset = (ulong) (frag.StartingVCN * _ntfs.BytesPrCluster - _position);
+                long fragOffset = frag.StartingVCN * _ntfs.BytesPrCluster - _position;
                 int getLength = Math.Min((int)(frag.ClusterCount * _ntfs.BytesPrCluster), count);
 
-                ulong diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
+                long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
 
                 // Get 
-                if (!_ntfs.Provider.CanReadBytes(diskOffset, getLength))
-                    throw new InvalidOperationException("Unable to read bytes " + diskOffset + "->" + (diskOffset + (ulong)getLength));
+                if (!_ntfs.Provider.CanReadBytes((ulong) diskOffset, getLength))
+                    throw new InvalidOperationException("Unable to read bytes " + diskOffset + "->" + (diskOffset + getLength));
 
                 // TODO: Make reader that can take a target byte array as input
-                byte[] data = _ntfs.Provider.ReadBytes(diskOffset, getLength);
+                byte[] data = _ntfs.Provider.ReadBytes((ulong) diskOffset, getLength);
 
                 Array.Copy(data, 0, buffer, offset, getLength);
 

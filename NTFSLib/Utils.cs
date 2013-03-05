@@ -28,14 +28,14 @@ namespace NTFSLib
             foreach (DataFragment fragment in fragments)
             {
                 // Calculate this fragments location on Disk
-                ulong offset = fragment.LCN * ntfs.BytesPrCluster;
+                long offset = fragment.LCN * ntfs.BytesPrCluster;
                 int length = (int)fragment.ClusterCount * (int)ntfs.BytesPrCluster;
 
-                if (!ntfs.Provider.CanReadBytes(offset, length))
+                if (!ntfs.Provider.CanReadBytes((ulong) offset, length))
                     throw new InvalidOperationException();
 
                 // Get the data
-                byte[] fragmentData = ntfs.Provider.ReadBytes(offset, length);
+                byte[] fragmentData = ntfs.Provider.ReadBytes((ulong) offset, length);
 
                 // Calculate this fragments location in the target array
                 int destinationOffset = (int)fragment.StartingVCN * (int)ntfs.BytesPrCluster;

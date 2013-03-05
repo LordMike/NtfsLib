@@ -9,7 +9,7 @@ namespace NTFSLib.Objects
         public byte Size { get; set; }              // Todo: Rename
         public long ClusterCount { get; set; }     // Todo: Rename
         public byte CompressedClusters { get; set; }
-        public ulong LCN { get; set; }
+        public long LCN { get; set; }
         public long StartingVCN { get; set; }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace NTFSLib.Objects
 
         public int ThisObjectLength { get; private set; }
 
-        public static DataFragment ParseData(byte[] data, ulong previousLcn, int offset)
+        public static DataFragment ParseData(byte[] data, long previousLcn, int offset)
         {
             DataFragment res = new DataFragment();
 
@@ -90,7 +90,7 @@ namespace NTFSLib.Objects
                     deltaLcn |= tmp;
                 }
 
-                res.LCN = (ulong)((long)res.LCN + deltaLcn);
+                res.LCN = res.LCN + deltaLcn;
             }
 
             return res;
@@ -106,7 +106,7 @@ namespace NTFSLib.Objects
             long vcn = startingVCN;
 
             int pointer = offset;
-            ulong lastLcn = 0;
+            long lastLcn = 0;
             while (pointer <= offset + maxLength)
             {
                 Debug.Assert(pointer <= offset + maxLength);

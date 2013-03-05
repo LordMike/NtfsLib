@@ -82,7 +82,7 @@ namespace NTFSLib
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
 
             // Get number of FileRecords 
-            FileRecordCount = (uint) (fileMftData.DataFragments.Sum(s => ((int)s.ClusterCount * (int)BytesPrCluster)) / BytesPrFileRecord);
+            FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => ((int)s.ClusterCount * (int)BytesPrCluster)) / BytesPrFileRecord);
             FileRecords = new WeakReference[FileRecordCount];
 
             FileRecords[0] = new WeakReference(FileMFT);
@@ -228,19 +228,19 @@ namespace NTFSLib
 
         public byte[] ReadMFTRecordData(uint number)
         {
-            ulong offset;
+            long offset;
             int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
 
             // Calculate location
             if (Provider.IsFile)
             {
                 // Is a continous file - ignore MFT fragments
-                offset = (ulong)(number * length);
+                offset = number * length;
             }
             else if (FileMFT == null)
             {
                 // We haven't got the $MFT yet, ignore MFT fragments
-                offset = (ulong)(number * length + (decimal)(Boot.MFTCluster * BytesPrCluster));
+                offset = number * length + (long) (Boot.MFTCluster * BytesPrCluster);
             }
             else
             {
@@ -270,20 +270,20 @@ namespace NTFSLib
                 Debug.Assert(fragment != null);
 
                 // Calculate offset inside fragment
-                ulong fragmentOffset = (ulong)(fragment.StartingVCN * (long) BytesPrCluster);
-                ulong fileOffsetInFragment = fileOffset - fragmentOffset;
+                long fragmentOffset = fragment.StartingVCN * BytesPrCluster;
+                long fileOffsetInFragment = fileOffset - fragmentOffset;
 
                 offset = fragment.LCN * BytesPrCluster + fileOffsetInFragment;
             }
 
-            if (!Provider.CanReadBytes(offset, length))
+            if (!Provider.CanReadBytes((ulong)offset, length))
             {
                 Debug.WriteLine("Couldn't read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
                 return new byte[0];
             }
 
             Debug.WriteLine("Read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
-            return Provider.ReadBytes(offset, length);
+            return Provider.ReadBytes((ulong)offset, length);
         }
 
         public Stream OpenFileRecord(uint number, string dataStream = "")
