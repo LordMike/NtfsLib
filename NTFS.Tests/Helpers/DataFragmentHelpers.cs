@@ -7,9 +7,9 @@ namespace NTFS.Tests.Helpers
     {
         public static void CheckFragment(DataFragment fragment, int clusterCount, byte compressedClusters, int startingVcn, byte size, int lcn, bool isSparseExtent, bool isCompressedExtent)
         {
-            Assert.AreEqual(clusterCount, (int)fragment.ClusterCount);
+            Assert.AreEqual(clusterCount, (int)fragment.Clusters);
             Assert.AreEqual(startingVcn, (int)fragment.StartingVCN);
-            Assert.AreEqual(size, fragment.Size);
+            Assert.AreEqual(size, fragment.FragmentSizeBytes);
             Assert.AreEqual(lcn, (int)fragment.LCN);
             Assert.AreEqual(compressedClusters, (int)fragment.CompressedClusters);
 

@@ -6,8 +6,12 @@ namespace NTFSLib.Objects
 {
     public class DataFragment
     {
-        public byte Size { get; set; }              // Todo: Rename
-        public long ClusterCount { get; set; }     // Todo: Rename
+        /// <summary>
+        /// Note. This is not the size in bytes of this fragment. It is a very compact NTFS-specific way of writing lengths.
+        /// Be warned when using it.
+        /// </summary>
+        public byte FragmentSizeBytes { get; set; }
+        public long Clusters { get; set; }
         public byte CompressedClusters { get; set; }
         public long LCN { get; set; }
         public long StartingVCN { get; set; }
@@ -21,6 +25,10 @@ namespace NTFSLib.Objects
             get { return LCN == 0; }
         }
 
+        /// <summary>
+        /// If this fragment is compressed, it will contain some clusters on disk (The Clusters property) which contain actual (compressed) data.
+        /// After that, there is a number of clusters (CompressedClusters property) which act as 'fillers' for the decompressed data. It does not exist on disk.
+        /// </summary>
         public bool IsCompressed
         {
             get { return CompressedClusters != 0; }
@@ -32,15 +40,15 @@ namespace NTFSLib.Objects
         {
             DataFragment res = new DataFragment();
 
-            res.Size = data[offset];
-            byte offsetBytes = (byte)(res.Size >> 4);
-            byte countBytes = (byte)(res.Size & 0x0F);
+            res.FragmentSizeBytes = data[offset];
+            byte offsetBytes = (byte)(res.FragmentSizeBytes >> 4);
+            byte countBytes = (byte)(res.FragmentSizeBytes & 0x0F);
 
             res.ThisObjectLength = 1 + countBytes + offsetBytes;
 
             if (countBytes == 0)
             {
-                res.Size = 0;
+                res.FragmentSizeBytes = 0;
                 return res;
             }
 
@@ -51,7 +59,7 @@ namespace NTFSLib.Objects
             byte[] tmpData = new byte[8];
             Array.Copy(data, offset + 1, tmpData, 0, countBytes);
 
-            res.ClusterCount = BitConverter.ToInt64(tmpData, 0);
+            res.Clusters = BitConverter.ToInt64(tmpData, 0);
             res.LCN = previousLcn;
 
             if (offsetBytes == 0)
@@ -115,13 +123,13 @@ namespace NTFSLib.Objects
 
                 pointer += fragment.ThisObjectLength;
 
-                if (fragment.Size == 0)
+                if (fragment.FragmentSizeBytes == 0)
                     // Last fragment
                     break;
 
                 fragment.StartingVCN = vcn;
 
-                vcn += fragment.ClusterCount;
+                vcn += fragment.Clusters;
 
                 if (!fragment.IsSparseFragment)
                     // Don't count sparse fragments for offsets
@@ -138,11 +146,11 @@ namespace NTFSLib.Objects
             for (int i = 0; i < fragments.Count; i++)
             {
                 if (fragments.Count > i + 1 &&
-                    (fragments[i].ClusterCount + fragments[i + 1].ClusterCount) % 16 == 0 &&
-                    fragments[i + 1].ClusterCount < 16)
+                    (fragments[i].Clusters + fragments[i + 1].Clusters) % 16 == 0 &&
+                    fragments[i + 1].Clusters < 16)
                 {
                     // Compact
-                    fragments[i].CompressedClusters = (byte)fragments[i + 1].ClusterCount;
+                    fragments[i].CompressedClusters = (byte)fragments[i + 1].Clusters;
                     fragments.RemoveAt(i + 1);
 
                     i--;

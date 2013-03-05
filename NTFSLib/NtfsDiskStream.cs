@@ -87,7 +87,7 @@ namespace NTFSLib
             {
                 DataFragment frag = _fragments[_positionFragment];
                 long fragOffset = frag.StartingVCN * _ntfs.BytesPrCluster - _position;
-                int getLength = Math.Min((int)(frag.ClusterCount * _ntfs.BytesPrCluster), count);
+                int getLength = Math.Min((int)(frag.Clusters * _ntfs.BytesPrCluster), count);
 
                 long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
 
@@ -162,7 +162,7 @@ namespace NTFSLib
             {
                 DataFragment frag = _fragments[i];
                 ulong start = (ulong)(frag.StartingVCN * _ntfs.BytesPrCluster);
-                ulong length = (ulong)(frag.ClusterCount * _ntfs.BytesPrCluster);
+                ulong length = (ulong)(frag.Clusters * _ntfs.BytesPrCluster);
 
                 if (start <= position && start + length > position)
                 {

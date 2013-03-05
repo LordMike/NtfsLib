@@ -83,7 +83,7 @@ namespace NTFSLib
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
 
             // Get number of FileRecords 
-            FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => ((int)s.ClusterCount * (int)BytesPrCluster)) / BytesPrFileRecord);
+            FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => ((int)s.Clusters * (int)BytesPrCluster)) / BytesPrFileRecord);
             FileRecords = new WeakReference[FileRecordCount];
 
             FileRecords[0] = new WeakReference(FileMFT);
@@ -261,7 +261,7 @@ namespace NTFSLib
                 {
                     DataFragment tmpFragment = dataAttribute.DataFragments[i];
                     if (tmpFragment.StartingVCN <= fileVcn &&
-                        tmpFragment.StartingVCN + tmpFragment.ClusterCount >= fileVcn + lengthClusters)
+                        tmpFragment.StartingVCN + tmpFragment.Clusters >= fileVcn + lengthClusters)
                     {
                         fragment = tmpFragment;
                         break;
