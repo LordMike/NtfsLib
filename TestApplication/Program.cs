@@ -23,7 +23,7 @@ namespace TestApplication
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
             // Read fragmented file
-            for (uint i = 20000; i < ntfs.FileRecordCount; i++)
+            for (uint i = 2116; i < ntfs.FileRecordCount; i++)
             {
                 FileRecord record = ntfs.ReadMFTRecord(i);
                 ntfs.ParseAttributeLists(record);

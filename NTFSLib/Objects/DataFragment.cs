@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace NTFSLib.Objects
 {
     public class DataFragment
     {
-        public byte Size { get; set; }
-        public ulong ClusterCount { get; set; }
+        public byte Size { get; set; }              // Todo: Rename
+        public ulong ClusterCount { get; set; }     // Todo: Rename
+        public byte CompressedClusters { get; set; }
         public ulong LCN { get; set; }
         public ulong StartingVCN { get; set; }
 
@@ -17,6 +19,11 @@ namespace NTFSLib.Objects
         public bool IsSparseFragment
         {
             get { return LCN == 0; }
+        }
+
+        public bool IsCompressed
+        {
+            get { return CompressedClusters != 0; }
         }
 
         public int ThisObjectLength { get; private set; }
@@ -37,19 +44,11 @@ namespace NTFSLib.Objects
                 return res;
             }
 
-            // Is it a negative value?
-            bool isNegative = false;
-            if ((countBytes & 0x08) == 0x08)                // 0x08: 0000 1000
-            {
-                // Reset countBytes (remove the high bit)
-                countBytes = (byte)(countBytes & 0xF7);    // 0xF7: 1111 0111
-                isNegative = true;
-            }
-
+            offsetBytes = (byte)(offsetBytes & 0xF7);    // 0xF7: 1111 0111
             Debug.Assert(countBytes <= 8, "Fragment metadata exceeded 8 bytes");
             Debug.Assert(offsetBytes <= 8, "Fragment metadata exceeded 8 bytes");
 
-            byte[] tmpData = new byte[16];
+            byte[] tmpData = new byte[8];
             Array.Copy(data, offset + 1, tmpData, 0, countBytes);
 
             res.ClusterCount = BitConverter.ToUInt64(tmpData, 0);
@@ -62,17 +61,96 @@ namespace NTFSLib.Objects
             }
             else
             {
-                // Data chunk
-                Array.Clear(tmpData, 0, tmpData.Length);
-                Array.Copy(data, offset + 1 + countBytes, tmpData, 0, offsetBytes);
+                long deltaLcn = 0;
 
-                if (isNegative)
-                    res.LCN -= BitConverter.ToUInt64(tmpData, 0);
-                else
-                    res.LCN += BitConverter.ToUInt64(tmpData, 0);
+                for (int i = offsetBytes - 1; i >= 0; i--)
+                {
+                    deltaLcn = deltaLcn << 8;
+                    deltaLcn += data[offset + 1 + countBytes + i];
+                }
+
+                // Is negative?
+                long negativeValue = 128 << 8 * (offsetBytes - 1);
+                if ((deltaLcn & negativeValue) == negativeValue)
+                {
+                    // Negtive
+                    // Set the remaining bytes to 0xFF
+                    long tmp = 0xFF;
+                    for (int i = 0; i < 8 - offsetBytes; i++)
+                    {
+                        tmp = tmp << 8;
+                        tmp |= 0xFF;
+                    }
+
+                    for (int i = 8 - offsetBytes; i < 8; i++)
+                    {
+                        tmp = tmp << 8;
+                    }
+
+                    deltaLcn |= tmp;
+                }
+
+                res.LCN = (ulong)((long)res.LCN + deltaLcn);
             }
 
             return res;
+        }
+
+        public static DataFragment[] ParseFragments(byte[] data, int maxLength, int offset, ulong startingVCN, ulong endingVCN)
+        {
+            Debug.Assert(data.Length - offset >= maxLength);
+            Debug.Assert(0 <= offset && offset <= data.Length);
+
+            List<DataFragment> fragments = new List<DataFragment>();
+
+            ulong vcn = startingVCN;
+
+            int pointer = offset;
+            ulong lastLcn = 0;
+            while (pointer <= offset + maxLength)
+            {
+                Debug.Assert(pointer <= offset + maxLength);
+
+                DataFragment fragment = ParseData(data, lastLcn, pointer);
+
+                pointer += fragment.ThisObjectLength;
+
+                if (fragment.Size == 0)
+                    // Last fragment
+                    break;
+
+                fragment.StartingVCN = vcn;
+
+                vcn += fragment.ClusterCount;
+
+                if (!fragment.IsSparseFragment)
+                    // Don't count sparse fragments for offsets
+                    lastLcn = fragment.LCN;
+
+                fragments.Add(fragment);
+            }
+
+            // Checks
+            Debug.Assert(fragments.Count == 0 || startingVCN == fragments[0].StartingVCN);
+            Debug.Assert(endingVCN == vcn - 1);
+
+            // Compact compressed fragments
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                if (fragments.Count > i + 1 &&
+                    (fragments[i].ClusterCount + fragments[i + 1].ClusterCount) % 16 == 0 &&
+                    fragments[i + 1].ClusterCount < 16)
+                {
+                    // Compact
+                    fragments[i].CompressedClusters = (byte)fragments[i + 1].ClusterCount;
+                    fragments.RemoveAt(i + 1);
+
+                    i--;
+                }
+            }
+
+            // Return
+            return fragments.ToArray();
         }
     }
 }

@@ -171,7 +171,7 @@ namespace NTFSLib.Objects.Attributes
 
                 Debug.Assert(offset + maxLength >= bodyOffset + length);
 
-                res.NonResidentHeader.Fragments = ParseFragments(res.NonResidentHeader, data, length, bodyOffset);
+                res.NonResidentHeader.Fragments = DataFragment.ParseFragments(data, length, bodyOffset, res.NonResidentHeader.StartingVCN, res.NonResidentHeader.EndingVCN);
             }
             else
             {
@@ -179,43 +179,6 @@ namespace NTFSLib.Objects.Attributes
             }
 
             return res;
-        }
-
-        private static DataFragment[] ParseFragments(AttributeNonResidentHeader header, byte[] data, int maxLength, int offset)
-        {
-            Debug.Assert(data.Length - offset >= maxLength);
-            Debug.Assert(0 <= offset && offset <= data.Length);
-
-            List<DataFragment> fragments = new List<DataFragment>();
-
-            ulong vcn = header.StartingVCN;
-
-            int pointer = offset;
-            ulong lastLcn = 0;
-            while (true)
-            {
-                Debug.Assert(pointer <= offset + maxLength);
-
-                DataFragment fragment = DataFragment.ParseData(data, lastLcn, pointer);
-
-                pointer += fragment.ThisObjectLength;
-
-                if (fragment.Size == 0)
-                    // Last fragment
-                    break;
-
-                fragment.StartingVCN = vcn;
-
-                vcn += fragment.ClusterCount;
-                lastLcn = fragment.LCN;
-
-                fragments.Add(fragment);
-            }
-
-            Debug.Assert(fragments.Count == 0 || header.StartingVCN == fragments[0].StartingVCN);
-            Debug.Assert(header.EndingVCN == vcn - 1);
-
-            return fragments.ToArray();
         }
     }
 }

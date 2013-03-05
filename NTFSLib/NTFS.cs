@@ -226,7 +226,7 @@ namespace NTFSLib
             return record;
         }
 
-        private byte[] ReadMFTRecordData(uint number)
+        public byte[] ReadMFTRecordData(uint number)
         {
             ulong offset;
             int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
