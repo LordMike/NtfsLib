@@ -10,6 +10,6 @@
         bool IsFile { get; }
 
         bool CanReadBytes(ulong offset, int bytes);
-        byte[] ReadBytes(ulong offset, int bytes);
+        int ReadBytes(byte[] buffer, int bufferOffset, ulong offset, int bytes);
     }
 }

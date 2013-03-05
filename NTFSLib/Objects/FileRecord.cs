@@ -99,16 +99,15 @@ namespace NTFSLib.Objects
             }
         }
 
-        public void ApplyUSNPatch(byte[] data)
+        public void ApplyUSNPatch(byte[] data, ushort bytesPrSector)
         {
-            // TODO: Automatically determine sector size
             // Determine sector count
-            int sectors = data.Length / 512;
+            int sectors = data.Length / bytesPrSector;
 
             for (int i = 0; i < sectors; i++)
             {
                 // Get pointer to the last two bytes
-                int blockOffset = i * 512 + 510;
+                int blockOffset = i * bytesPrSector + 510;
 
                 // Check that they match the USN Number
                 Debug.Assert(data[blockOffset] == USNNumber[0]);

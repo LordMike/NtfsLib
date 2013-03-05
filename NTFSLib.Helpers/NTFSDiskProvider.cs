@@ -29,21 +29,18 @@ namespace NTFSLib.Helpers
             return true;
         }
 
-        public byte[] ReadBytes(ulong offset, int bytes)
+        public int ReadBytes(byte[] buffer, int bufferOffset, ulong offset, int bytes)
         {
             long sector = (long)offset / _disk.SectorSize;
-            int sectors = bytes / _disk.SectorSize + (bytes % _disk.SectorSize == 0 ? 1 : 0);
+            int sectors = bytes / _disk.SectorSize + (bytes % _disk.SectorSize == 0 ? 0 : 1);
 
             // Read sectors
-            byte[] tmpData = _disk.ReadSectors(sector, sectors);
+            // TODO: Make it so that _disk.ReadSectors() can take a byte array
+            byte[] data = _disk.ReadSectors(sector, sectors);
 
-            if (tmpData.Length == bytes)
-                return tmpData;
+            Array.Copy(data, bytes % _disk.SectorSize, buffer, bufferOffset, bytes);
 
-            byte[] data = new byte[bytes];
-            Array.Copy(tmpData, bytes % _disk.SectorSize, data, 0, bytes);
-
-            return data;
+            return bytes;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace NTFSLib
 
         public static byte[] ReadFragments(NTFS ntfs, DataFragment[] fragments)
         {
-            int totalLength = (int) (fragments.Sum(s => (decimal)s.ClusterCount) * ntfs.BytesPrCluster);
+            int totalLength = (int)(fragments.Sum(s => (decimal)s.ClusterCount) * ntfs.BytesPrCluster);
 
             byte[] data = new byte[totalLength];
 
@@ -31,11 +31,12 @@ namespace NTFSLib
                 long offset = fragment.LCN * ntfs.BytesPrCluster;
                 int length = (int)fragment.ClusterCount * (int)ntfs.BytesPrCluster;
 
-                if (!ntfs.Provider.CanReadBytes((ulong) offset, length))
+                if (!ntfs.Provider.CanReadBytes((ulong)offset, length))
                     throw new InvalidOperationException();
 
                 // Get the data
-                byte[] fragmentData = ntfs.Provider.ReadBytes((ulong) offset, length);
+                byte[] fragmentData = new byte[length];
+                ntfs.Provider.ReadBytes(fragmentData, 0, (ulong)offset, length);
 
                 // Calculate this fragments location in the target array
                 int destinationOffset = (int)fragment.StartingVCN * (int)ntfs.BytesPrCluster;

@@ -61,7 +61,8 @@ namespace NTFSLib
             }
             else
             {
-                byte[] data = Provider.ReadBytes(0, 512);
+                byte[] data = new byte[512];
+                Provider.ReadBytes(data, 0, 0, 512);
                 Boot = BootSector.ParseData(data, 512, 0);
 
                 Debug.Assert(Boot.OEMCode == "NTFS");
@@ -129,16 +130,16 @@ namespace NTFSLib
 
         private void RefreshFileRecordSize()
         {
-            byte[] data;
+            byte[] data = new byte[512];
             if (Provider.IsFile)
             {
                 // Get the first 512 bytes of the provider
-                data = Provider.ReadBytes(0, 512);
+                Provider.ReadBytes(data, 0, 0, 512);
             }
             else
             {
                 // Not continous, adhere to $BOOT
-                data = Provider.ReadBytes(Boot.MFTCluster * BytesPrCluster, 512);
+                Provider.ReadBytes(data, 0, Boot.MFTCluster * BytesPrCluster, 512);
             }
 
             BytesPrFileRecord = FileRecord.ParseAllocatedSize(data, 0);
@@ -189,7 +190,7 @@ namespace NTFSLib
         private FileRecord ParseMFTRecord(byte[] data)
         {
             FileRecord record = FileRecord.ParseHeader(data, 0);
-            record.ApplyUSNPatch(data);
+            record.ApplyUSNPatch(data, Boot.BytesPrSector);
             record.ParseAttributes(data, (uint)data.Length, record.OffsetToFirstAttribute);
 
             return record;
@@ -240,7 +241,7 @@ namespace NTFSLib
             else if (FileMFT == null)
             {
                 // We haven't got the $MFT yet, ignore MFT fragments
-                offset = number * length + (long) (Boot.MFTCluster * BytesPrCluster);
+                offset = number * length + (long)(Boot.MFTCluster * BytesPrCluster);
             }
             else
             {
@@ -283,7 +284,10 @@ namespace NTFSLib
             }
 
             Debug.WriteLine("Read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
-            return Provider.ReadBytes((ulong)offset, length);
+            byte[] data = new byte[length];
+            Provider.ReadBytes(data, 0, (ulong)offset, length);
+
+            return data;
         }
 
         public Stream OpenFileRecord(uint number, string dataStream = "")

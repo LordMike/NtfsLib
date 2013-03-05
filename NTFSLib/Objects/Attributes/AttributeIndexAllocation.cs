@@ -54,9 +54,8 @@ namespace NTFSLib.Objects.Attributes
             USNData = new byte[USNSizeWords * 2];
             Array.Copy(data, OffsetToUSN + 2, USNData, 0, USNSizeWords * 2);
 
-            // TODO: Automatically determine sector size
             // Patch USN Data
-            ApplyUSNPatch(data, ((int)SizeOfIndexAllocated + 24) / 512);
+            ApplyUSNPatch(data, ((int)SizeOfIndexAllocated + 24) / ntfs.Boot.BytesPrSector, ntfs.Boot.BytesPrSector);
 
             // Parse entries
             List<IndexEntry> entries = new List<IndexEntry>();
@@ -77,15 +76,14 @@ namespace NTFSLib.Objects.Attributes
             Entries = entries.ToArray();
         }
 
-        private void ApplyUSNPatch(byte[] data, int sectors)
+        private void ApplyUSNPatch(byte[] data, int sectors, ushort bytesPrSector)
         {
-            // TODO: Automatically determine sector size
-            Debug.Assert(data.Length >= sectors * 512);
+            Debug.Assert(data.Length >= sectors * bytesPrSector);
 
             for (int i = 0; i < sectors; i++)
             {
                 // Get pointer to the last two bytes
-                int blockOffset = i * 512 + 510;
+                int blockOffset = i * bytesPrSector + 510;
 
                 // Check that they match the USN Number
                 Debug.Assert(data[blockOffset] == USNNumber[0]);
