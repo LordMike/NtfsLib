@@ -24,7 +24,7 @@ namespace NTFSLib.Objects.Security
             res.Type = (ACEType)data[offset];
             res.Flags = (ACEFlags)data[offset + 1];
             res.Size = BitConverter.ToUInt16(data, offset + 2);
-            res.AccessMask = (FileSystemRights) BitConverter.ToUInt32(data, offset + 4);
+            res.AccessMask = (FileSystemRights) BitConverter.ToInt32(data, offset + 4);
 
             res.SID = new SecurityIdentifier(data,offset + 8);
 

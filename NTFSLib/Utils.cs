@@ -29,7 +29,7 @@ namespace NTFSLib
             {
                 // Calculate this fragments location on Disk
                 ulong offset = fragment.LCN * ntfs.BytesPrCluster;
-                int length = (int)(fragment.ClusterCount * ntfs.BytesPrCluster);
+                int length = (int)fragment.ClusterCount * (int)ntfs.BytesPrCluster;
 
                 if (!ntfs.Provider.CanReadBytes(offset, length))
                     throw new InvalidOperationException();

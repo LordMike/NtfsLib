@@ -7,10 +7,10 @@ namespace NTFSLib.Objects
     public class DataFragment
     {
         public byte Size { get; set; }              // Todo: Rename
-        public ulong ClusterCount { get; set; }     // Todo: Rename
+        public long ClusterCount { get; set; }     // Todo: Rename
         public byte CompressedClusters { get; set; }
         public ulong LCN { get; set; }
-        public ulong StartingVCN { get; set; }
+        public long StartingVCN { get; set; }
 
         /// <summary>
         /// If this fragment is sparse, there is not data on the disk to reflect the data in the file. 
@@ -51,7 +51,7 @@ namespace NTFSLib.Objects
             byte[] tmpData = new byte[8];
             Array.Copy(data, offset + 1, tmpData, 0, countBytes);
 
-            res.ClusterCount = BitConverter.ToUInt64(tmpData, 0);
+            res.ClusterCount = BitConverter.ToInt64(tmpData, 0);
             res.LCN = previousLcn;
 
             if (offsetBytes == 0)
@@ -96,14 +96,14 @@ namespace NTFSLib.Objects
             return res;
         }
 
-        public static DataFragment[] ParseFragments(byte[] data, int maxLength, int offset, ulong startingVCN, ulong endingVCN)
+        public static DataFragment[] ParseFragments(byte[] data, int maxLength, int offset, long startingVCN, long endingVCN)
         {
             Debug.Assert(data.Length - offset >= maxLength);
             Debug.Assert(0 <= offset && offset <= data.Length);
 
             List<DataFragment> fragments = new List<DataFragment>();
 
-            ulong vcn = startingVCN;
+            long vcn = startingVCN;
 
             int pointer = offset;
             ulong lastLcn = 0;

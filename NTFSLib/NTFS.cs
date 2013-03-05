@@ -24,9 +24,9 @@ namespace NTFSLib
             InitializeNTFS();
         }
 
-        public ulong BytesPrCluster
+        public uint BytesPrCluster
         {
-            get { return (ulong)(Boot.BytesPrSector * Boot.SectorsPrCluster); }
+            get { return (uint)(Boot.BytesPrSector * Boot.SectorsPrCluster); }
         }
 
         public uint BytesPrFileRecord { get; private set; }
@@ -82,7 +82,7 @@ namespace NTFSLib
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
 
             // Get number of FileRecords 
-            FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => (decimal)(s.ClusterCount * BytesPrCluster)) / BytesPrFileRecord);
+            FileRecordCount = (uint) (fileMftData.DataFragments.Sum(s => ((int)s.ClusterCount * (int)BytesPrCluster)) / BytesPrFileRecord);
             FileRecords = new WeakReference[FileRecordCount];
 
             FileRecords[0] = new WeakReference(FileMFT);
@@ -250,7 +250,7 @@ namespace NTFSLib
                 Debug.Assert(dataAttribute.NonResidentFlag == ResidentFlag.NonResident);
 
                 uint fileOffset = (uint)(number * length);
-                ulong fileVcn = fileOffset / BytesPrCluster;
+                long fileVcn = (long)(fileOffset / BytesPrCluster);
                 decimal lengthClusters = length / (decimal)BytesPrCluster;
 
                 // Find relevant fragment
@@ -270,7 +270,7 @@ namespace NTFSLib
                 Debug.Assert(fragment != null);
 
                 // Calculate offset inside fragment
-                ulong fragmentOffset = fragment.StartingVCN * BytesPrCluster;
+                ulong fragmentOffset = (ulong)(fragment.StartingVCN * (long) BytesPrCluster);
                 ulong fileOffsetInFragment = fileOffset - fragmentOffset;
 
                 offset = fragment.LCN * BytesPrCluster + fileOffsetInFragment;

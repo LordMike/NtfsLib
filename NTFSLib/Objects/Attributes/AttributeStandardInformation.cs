@@ -38,7 +38,7 @@ namespace NTFSLib.Objects.Attributes
             TimeModified = Utils.FromWinFileTime(data, offset + 8);
             TimeMftModified = Utils.FromWinFileTime(data, offset + 16);
             TimeAccessed = Utils.FromWinFileTime(data, offset + 24);
-            DosPermissions = (FileAttributes)BitConverter.ToUInt32(data, offset + 32);
+            DosPermissions = (FileAttributes)BitConverter.ToInt32(data, offset + 32);
 
             MaxmiumVersions = BitConverter.ToUInt32(data, offset + 36);
             VersionNumber = BitConverter.ToUInt32(data, offset + 40);

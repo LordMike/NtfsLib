@@ -6,8 +6,8 @@ namespace NTFSLib.Objects.Headers
 {
     public class AttributeNonResidentHeader
     {
-        public uint StartingVCN { get; set; }
-        public uint EndingVCN { get; set; }
+        public long StartingVCN { get; set; }
+        public long EndingVCN { get; set; }
         public ushort ListOffset { get; set; }
         public ushort Compression { get; set; }
         public ulong ContentSizeAllocated { get; set; }
@@ -20,9 +20,8 @@ namespace NTFSLib.Objects.Headers
         {
             AttributeNonResidentHeader res = new AttributeNonResidentHeader();
 
-            // TODO: The two fields below are said to be ulongs. But tests indicate they're uints.
-            res.StartingVCN = BitConverter.ToUInt32(data, offset);
-            res.EndingVCN = BitConverter.ToUInt32(data, offset + 8);
+            res.StartingVCN = BitConverter.ToInt64(data, offset);
+            res.EndingVCN = BitConverter.ToInt64(data, offset + 8);
             res.ListOffset = BitConverter.ToUInt16(data, offset + 16);
             res.Compression = BitConverter.ToUInt16(data, offset + 18);
             res.ContentSizeAllocated = BitConverter.ToUInt64(data, offset + 24);
