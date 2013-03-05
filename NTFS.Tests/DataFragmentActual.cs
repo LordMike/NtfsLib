@@ -34,5 +34,19 @@ namespace NTFS.Tests
 
             DataFragmentHelpers.CheckFragment(fragments[0], 1, 0, 0, 0x41, 230575152, false, false);
         }
+
+        [TestMethod]
+        public void ActualFragmentRun3()
+        {
+            // Mikes Disk E: MFT# 39 Data Non-Resident
+            byte[] data = new byte[] { 0x41, 0x02, 0x41, 0xC3, 0x88, 0x08, 0x31, 0x02, 0xE4, 0x2D, 0x01, 0x31, 0x03, 0x1D, 0x41, 0x01, 0x00, 0x0D, 0x5A, 0x18, 0xA0, 0xF8, 0xFF, 0xFF };
+            DataFragment[] fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 6);
+
+            Assert.AreEqual(3, fragments.Length);
+
+            DataFragmentHelpers.CheckFragment(fragments[0], 2, 0, 0, 0x41, 143180609, false, false);
+            DataFragmentHelpers.CheckFragment(fragments[1], 2, 0, 2, 0x31, 143257893, false, false);
+            DataFragmentHelpers.CheckFragment(fragments[2], 3, 0, 4, 0x31, 143340098, false, false);
+        }
     }
 }

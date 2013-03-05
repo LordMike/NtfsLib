@@ -38,7 +38,7 @@ namespace NTFSLib.Helpers
             // TODO: Make it so that _disk.ReadSectors() can take a byte array
             byte[] data = _disk.ReadSectors(sector, sectors);
 
-            Array.Copy(data, bytes % _disk.SectorSize, buffer, bufferOffset, bytes);
+            Array.Copy(data, (int) (offset % (ulong)_disk.SectorSize), buffer, bufferOffset, bytes);
 
             return bytes;
         }

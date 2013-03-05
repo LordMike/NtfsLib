@@ -69,9 +69,6 @@ namespace NTFSLib
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (count > _length - _position)
-                throw new ArgumentOutOfRangeException("count");
-
             if (count <= 0)
                 throw new ArgumentOutOfRangeException("count");
 
@@ -86,8 +83,11 @@ namespace NTFSLib
             while (count > 0)
             {
                 DataFragment frag = _fragments[_positionFragment];
-                long fragOffset = frag.StartingVCN * _ntfs.BytesPrCluster - _position;
-                int getLength = Math.Min((int)(frag.Clusters * _ntfs.BytesPrCluster), count);
+                long fragOffset = _position - frag.StartingVCN * _ntfs.BytesPrCluster;
+                int getLength = (int)Math.Min(_length - _position, Math.Min((int)(frag.Clusters * _ntfs.BytesPrCluster), count));
+
+                if (getLength <= 0)
+                    break;
 
                 long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
 
@@ -138,7 +138,7 @@ namespace NTFSLib
             get { return _position; }
             set
             {
-                if (IsLocationValid(value))
+                if (!IsLocationValid(value))
                     throw new ArgumentOutOfRangeException("position");
 
                 SetPosition(value);
