@@ -250,7 +250,7 @@ namespace NTFSLib
                 Debug.Assert(dataAttribute.NonResidentFlag == ResidentFlag.NonResident);
 
                 uint fileOffset = (uint)(number * length);
-                long fileVcn = (long)(fileOffset / BytesPrCluster);
+                long fileVcn = fileOffset / BytesPrCluster;
                 decimal lengthClusters = length / (decimal)BytesPrCluster;
 
                 // Find relevant fragment

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using NTFSLib;
 using NTFSLib.Helpers;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using RawDiskLib;
-using System.Linq;
 
 namespace TestApplication
 {
@@ -33,7 +33,7 @@ namespace TestApplication
                 if (record.BaseFile.RawId != 0)
                     continue;
 
-                var attributeData = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == "") || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == "")).ToList();
+                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == "") || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == "")).ToList();
 
                 if (attributeData.Any(s => s.NonResidentFlag == ResidentFlag.Resident))
                     continue;
