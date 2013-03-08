@@ -12,8 +12,35 @@ namespace NTFSLib.Objects.Attributes
         {
             get
             {
-                return AttributeResidentAllow.Resident;
+                return AttributeResidentAllow.Resident | AttributeResidentAllow.NonResident;
             }
+        }
+
+        internal override void ParseAttributeNonResidentBody(NTFS ntfs)
+        {
+            base.ParseAttributeNonResidentBody(ntfs);
+
+            // Get all chunks
+            byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+
+            // Parse
+            Debug.Assert(data.Length >= 8);
+
+            List<ExtendedAttribute> extendedAttributes = new List<ExtendedAttribute>();
+            int pointer = 0;
+            while (pointer + 8 <= data.Length)       // 8 is the minimum size of an ExtendedAttribute
+            {
+                if (ExtendedAttribute.GetSize(data, pointer) <= 0)
+                    break;
+
+                ExtendedAttribute ea = ExtendedAttribute.ParseData(data, (int)NonResidentHeader.ContentSize, pointer);
+
+                extendedAttributes.Add(ea);
+
+                pointer += ea.Size;
+            }
+
+            ExtendedAttributes = extendedAttributes.ToArray();
         }
 
         internal override void ParseAttributeResidentBody(byte[] data, int maxLength, int offset)

@@ -52,7 +52,7 @@ namespace NTFSLib
         private void InitializeNTFS()
         {
             // Read $BOOT
-            if (Provider.IsFile)
+            if (Provider.MftFileOnly)
             {
                 Boot = new BootSector();
                 Boot.OEMCode = "NTFS";
@@ -131,7 +131,7 @@ namespace NTFSLib
         private void RefreshFileRecordSize()
         {
             byte[] data = new byte[512];
-            if (Provider.IsFile)
+            if (Provider.MftFileOnly)
             {
                 // Get the first 512 bytes of the provider
                 Provider.ReadBytes(data, 0, 0, 512);
@@ -147,6 +147,20 @@ namespace NTFSLib
             Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
         }
 
+        public void ParseNonResidentAttributes(FileRecord record)
+        {
+            if (Provider.MftFileOnly)
+                // Nothing to do about this
+                throw new InvalidOperationException("Provider indicates an MFT file is used. Cannot parse non-resident attributes.");
+
+            foreach (Attribute attr in record.Attributes.Where(s => s.Type != AttributeType.DATA && s.NonResidentFlag == ResidentFlag.NonResident))
+            {
+                if (attr.NonResidentHeader.EndingVCN > 0)
+                    // Get data
+                    attr.ParseAttributeNonResidentBody(this);
+            }
+        }
+
         public void ParseAttributeLists(FileRecord record)
         {
             while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
@@ -155,7 +169,7 @@ namespace NTFSLib
 
                 if (listAttr.NonResidentFlag == ResidentFlag.NonResident)
                 {
-                    if (Provider.IsFile)
+                    if (Provider.MftFileOnly)
                     {
                         // Nothing to do about this
                         return;
@@ -227,13 +241,62 @@ namespace NTFSLib
             return record;
         }
 
+        public string BuildFileName(FileRecord record)
+        {
+            return BuildFileName(record, null);
+        }
+
+        public string BuildFileName(FileRecord record, char rootDriveLetter)
+        {
+            return BuildFileName(record, rootDriveLetter + ":");
+        }
+
+        public string BuildFileName(FileRecord record, string rootName)
+        {
+            // Get filename (and prefer the non-8dot3 variant)
+            AttributeFileName fileName = record.Attributes.OfType<AttributeFileName>().OrderBy(s => s.FileName.Count(x => x == '~')).FirstOrDefault();
+            
+            if (fileName == null)
+                throw new NullReferenceException("Record has no FileName attribute");
+            
+            string path = fileName.FileName;
+
+            if (record.Flags.HasFlag(FileEntryFlags.Directory))
+                path += '\\';
+
+            // Continue till we hit SpecialMFTFiles.RootDir
+            FileRecord parentRecord;
+            do
+            {
+                // Get parent
+                parentRecord = ReadMFTRecord((uint)fileName.ParentDirectory.FileId);
+
+                if (parentRecord == null)
+                    throw new NullReferenceException("A parent record was null");
+
+                fileName = parentRecord.Attributes.OfType<AttributeFileName>().OrderBy(s => s.FileName.Count(x => x == '~')).FirstOrDefault();
+
+                if (fileName == null)
+                    throw new NullReferenceException("A parent record had no Filename attribute");
+
+                if (parentRecord.FileReference.FileId == (uint) SpecialMFTFiles.RootDir)
+                {
+                    path = rootName + '\\' + path;
+                    break;
+                }
+                path = fileName.FileName + '\\' + path;
+            } while (true);
+
+            return path;
+        }
+
         public byte[] ReadMFTRecordData(uint number)
         {
             long offset;
             int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
 
             // Calculate location
-            if (Provider.IsFile)
+            if (Provider.MftFileOnly)
             {
                 // Is a continous file - ignore MFT fragments
                 offset = number * length;
@@ -298,6 +361,9 @@ namespace NTFSLib
         public Stream OpenFileRecord(FileRecord record, string dataStream = "")
         {
             Debug.Assert(record != null);
+
+            if (Provider.MftFileOnly)
+                throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
 
             // Fetch extended data
             ParseAttributeLists(record);

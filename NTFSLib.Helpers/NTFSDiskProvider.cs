@@ -13,7 +13,7 @@ namespace NTFSLib.Helpers
             _disk = disk;
         }
 
-        public bool IsFile
+        public bool MftFileOnly
         {
             get { return false; }
         }
@@ -35,12 +35,7 @@ namespace NTFSLib.Helpers
             int sectors = bytes / _disk.SectorSize + (bytes % _disk.SectorSize == 0 ? 0 : 1);
 
             // Read sectors
-            // TODO: Make it so that _disk.ReadSectors() can take a byte array
-            byte[] data = _disk.ReadSectors(sector, sectors);
-
-            Array.Copy(data, (int) (offset % (ulong)_disk.SectorSize), buffer, bufferOffset, bytes);
-
-            return bytes;
+            return _disk.ReadSectors(buffer, bufferOffset, sector, sectors);
         }
     }
 }

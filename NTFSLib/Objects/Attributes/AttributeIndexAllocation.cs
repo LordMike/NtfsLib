@@ -36,9 +36,14 @@ namespace NTFSLib.Objects.Attributes
 
             // Get all chunks
             byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
-            
+
+            Debug.Assert(data.Length >= 36);
+
             // Parse
             Signature = Encoding.ASCII.GetString(data, 0, 4);
+
+            Debug.Assert(Signature == "INDX");
+
             OffsetToUSN = BitConverter.ToUInt16(data, 4);
             USNSizeWords = BitConverter.ToUInt16(data, 6);
             LogFileUSN = BitConverter.ToUInt64(data, 8);
@@ -47,6 +52,8 @@ namespace NTFSLib.Objects.Attributes
             SizeOfIndexTotal = BitConverter.ToUInt32(data, 28);
             SizeOfIndexAllocated = BitConverter.ToUInt32(data, 32);
             HasChildren = data[36];
+
+            Debug.Assert(data.Length >= OffsetToUSN + 2 + USNSizeWords * 2);
 
             USNNumber = new byte[2];
             Array.Copy(data, OffsetToUSN, USNNumber, 0, 2);
@@ -57,21 +64,23 @@ namespace NTFSLib.Objects.Attributes
             // Patch USN Data
             ApplyUSNPatch(data, ((int)SizeOfIndexAllocated + 24) / ntfs.Boot.BytesPrSector, ntfs.Boot.BytesPrSector);
 
+            Debug.Assert(SizeOfIndexTotal <= data.Length);
+
             // Parse entries
             List<IndexEntry> entries = new List<IndexEntry>();
 
             int pointer = (int)(OffsetToFirstIndex + 24);       // Offset is relative to 0x18
-            do
+            while (pointer <= SizeOfIndexTotal - pointer + 24)
             {
                 IndexEntry entry = IndexEntry.ParseData(data, (int)SizeOfIndexTotal - pointer + 24, pointer);
-
-                entries.Add(entry);
 
                 if (entry.Flags.HasFlag(MFTIndexEntryFlags.LastEntry))
                     break;
 
+                entries.Add(entry);
+
                 pointer += entry.Size;
-            } while (true);
+            }
 
             Entries = entries.ToArray();
         }
