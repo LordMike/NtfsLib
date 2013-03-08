@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using NTFSLib.Objects;
+using System.Linq;
 
 namespace NTFSLib
 {
@@ -13,11 +14,23 @@ namespace NTFSLib
         private long _position;
         private long _length;
 
+        private bool IsEof
+        {
+            get { return _position >= _length; }
+        }
+
         internal NtfsDiskStream(NTFS ntfs, DataFragment[] fragments, long length)
         {
             _ntfs = ntfs;
-            _fragments = fragments;
+            _fragments = fragments.OrderBy(s => s.StartingVCN).ToArray();
             _length = length;
+
+            long vcn = 0;
+            for (int i = 0; i < _fragments.Length; i++)
+            {
+                Debug.Assert(_fragments[i].StartingVCN == vcn);
+                vcn += _fragments[i].Clusters;// +_fragments[i].CompressedClusters;     // Todo: Handle compressed clusters
+            }
 
             SetPosition(0);
         }
@@ -80,7 +93,7 @@ namespace NTFSLib
 
             // Read fragments
             int read = 0;
-            while (count > 0)
+            while (count > 0 && !IsEof)
             {
                 DataFragment frag = _fragments[_positionFragment];
                 long fragOffset = _position - frag.StartingVCN * _ntfs.BytesPrCluster;
@@ -89,13 +102,21 @@ namespace NTFSLib
                 if (getLength <= 0)
                     break;
 
-                long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
+                if (_fragments[_positionFragment].IsSparseFragment)
+                {
+                    // Simulate reading
+                }
+                else
+                {
+                    // Actually read
+                    long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
 
-                // Get 
-                if (!_ntfs.Provider.CanReadBytes((ulong)diskOffset, getLength))
-                    throw new InvalidOperationException("Unable to read bytes " + diskOffset + "->" + (diskOffset + getLength));
+                    // Get 
+                    if (!_ntfs.Provider.CanReadBytes((ulong)diskOffset, getLength))
+                        throw new InvalidOperationException("Unable to read bytes " + diskOffset + "->" + (diskOffset + getLength));
 
-                _ntfs.Provider.ReadBytes(buffer, offset, (ulong)diskOffset, getLength);
+                    _ntfs.Provider.ReadBytes(buffer, offset, (ulong)diskOffset, getLength);
+                }
 
                 count -= getLength;
                 offset += getLength;
@@ -154,26 +175,35 @@ namespace NTFSLib
         {
             Debug.Assert(IsLocationValid(newPosition));
 
-            ulong position = (ulong)newPosition;
-            _positionFragment = -1;
-
-            // Find fragment
-            for (int i = 0; i < _fragments.Length; i++)
+            if (newPosition == _length)
             {
-                DataFragment frag = _fragments[i];
-                ulong start = (ulong)(frag.StartingVCN * _ntfs.BytesPrCluster);
-                ulong length = (ulong)(frag.Clusters * _ntfs.BytesPrCluster);
-
-                if (start <= position && start + length > position)
-                {
-                    // Found it
-                    _position = newPosition;
-                    _positionFragment = i;
-                    return;
-                }
+                // EOF
+                _position = newPosition;
+                _positionFragment = -1;
             }
+            else
+            {
+                ulong position = (ulong)newPosition;
+                _positionFragment = -1;
 
-            Debug.Fail("Unreachable!");
+                // Find fragment
+                for (int i = 0; i < _fragments.Length; i++)
+                {
+                    DataFragment frag = _fragments[i];
+                    ulong start = (ulong)(frag.StartingVCN * _ntfs.BytesPrCluster);
+                    ulong length = (ulong)(frag.Clusters * _ntfs.BytesPrCluster);
+
+                    if (start <= position && position < start + length)
+                    {
+                        // Found it
+                        _position = newPosition;
+                        _positionFragment = i;
+                        return;
+                    }
+                }
+
+                Debug.Fail("Unreachable code!");
+            }
         }
     }
 }

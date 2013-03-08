@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
+using System.Linq;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -171,6 +173,14 @@ namespace NTFSLib.Objects.Attributes
                 Debug.Assert(offset + maxLength >= bodyOffset + length);
 
                 res.NonResidentHeader.Fragments = DataFragment.ParseFragments(data, length, bodyOffset, res.NonResidentHeader.StartingVCN, res.NonResidentHeader.EndingVCN);
+
+                // Compact compressed fragments
+                if (res.NonResidentHeader.Compression != 0)
+                {
+                    List<DataFragment> fragments = res.NonResidentHeader.Fragments.ToList();
+                    DataFragment.CompactCompressedFragments(fragments);
+                    res.NonResidentHeader.Fragments = fragments.ToArray();
+                }
             }
             else
             {

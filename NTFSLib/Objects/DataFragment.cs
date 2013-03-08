@@ -142,10 +142,16 @@ namespace NTFSLib.Objects
             Debug.Assert(fragments.Count == 0 || startingVCN == fragments[0].StartingVCN);
             Debug.Assert(endingVCN == vcn - 1);
 
-            // Compact compressed fragments
+            // Return
+            return fragments.ToArray();
+        }
+
+        public static void CompactCompressedFragments(List<DataFragment> fragments)
+        {
             for (int i = 0; i < fragments.Count; i++)
             {
                 if (fragments.Count > i + 1 &&
+                    fragments[i + 1].IsSparseFragment && 
                     (fragments[i].Clusters + fragments[i + 1].Clusters) % 16 == 0 &&
                     fragments[i + 1].Clusters < 16)
                 {
@@ -156,9 +162,6 @@ namespace NTFSLib.Objects
                     i--;
                 }
             }
-
-            // Return
-            return fragments.ToArray();
         }
     }
 }
