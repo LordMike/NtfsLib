@@ -1,6 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFS.Tests.Helpers;
 using NTFSLib.Objects;
+using System.Linq;
 
 namespace NTFS.Tests
 {
@@ -64,9 +66,12 @@ namespace NTFS.Tests
         public void FragmentsRun5()
         {
             byte[] data = new byte[] { 0x11, 0x08, 0x40, 0x01, 0x08, 0x11, 0x10, 0x08, 0x11, 0x0C, 0x10, 0x01, 0x04, 0x00 };
-            DataFragment[] fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 47);
+            List<DataFragment> fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 47).ToList();
 
-            Assert.AreEqual(3, fragments.Length);
+            // These fragments have compression
+            DataFragment.CompactCompressedFragments(fragments);
+
+            Assert.AreEqual(3, fragments.Count);
 
             DataFragmentHelpers.CheckFragment(fragments[0], 8, 8, 0, 0x11, 64, false, true);
             DataFragmentHelpers.CheckFragment(fragments[1], 16, 0, 16, 0x11, 72, false, false);
@@ -118,9 +123,12 @@ namespace NTFS.Tests
         public void FragmentsRun9()
         {
             byte[] data = new byte[] { 0x21, 0x02, 0xEF, 0x07, 0x01, 0x0E, 0x00 };
-            DataFragment[] fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 15);
+            List<DataFragment> fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 15).ToList();
 
-            Assert.AreEqual(1, fragments.Length);
+            // These fragments have compression
+            DataFragment.CompactCompressedFragments(fragments);
+
+            Assert.AreEqual(1, fragments.Count);
 
             DataFragmentHelpers.CheckFragment(fragments[0], 2, 14, 0, 0x21, 2031, false, true);
         }
