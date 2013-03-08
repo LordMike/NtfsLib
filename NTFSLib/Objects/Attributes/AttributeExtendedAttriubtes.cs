@@ -24,14 +24,17 @@ namespace NTFSLib.Objects.Attributes
 
             List<ExtendedAttribute> extendedAttributes = new List<ExtendedAttribute>();
             int pointer = offset;
-            do
+            while (pointer + 8 <= offset + maxLength)       // 8 is the minimum size of an ExtendedAttribute
             {
+                if (ExtendedAttribute.GetSize(data, pointer) < 0)
+                    break;
+
                 ExtendedAttribute ea = ExtendedAttribute.ParseData(data, (int) ResidentHeader.ContentLength, pointer);
 
                 extendedAttributes.Add(ea);
 
-                pointer +=(int) ea.Size;
-            } while (pointer <= offset + maxLength);
+                pointer +=ea.Size;
+            }
 
             ExtendedAttributes = extendedAttributes.ToArray();
         }
