@@ -35,6 +35,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Specials\IndexAllocationChunk.cs" />
     <Compile Include="Objects\Enums\AttributeFlags.cs" />
     <Compile Include="Objects\Attributes\Attribute.cs" />
     <Compile Include="Objects\Attributes\AttributeBitmap.cs" />
