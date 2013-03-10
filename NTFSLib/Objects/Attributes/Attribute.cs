@@ -131,7 +131,7 @@ namespace NTFSLib.Objects.Attributes
                     res = new AttributeExtendedAttributeInformation();
                     break;
                 case AttributeType.EA:
-                    res = new AttributeExtendedAttriubtes();
+                    res = new AttributeExtendedAttributes();
                     break;
                 // Property set seems to be obsolete
                 //case AttributeType.PROPERTY_SET:

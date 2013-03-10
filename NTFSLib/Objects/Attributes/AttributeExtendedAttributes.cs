@@ -4,7 +4,7 @@ using NTFSLib.Objects.Enums;
 
 namespace NTFSLib.Objects.Attributes
 {
-    public class AttributeExtendedAttriubtes : Attribute
+    public class AttributeExtendedAttributes : Attribute
     {
         public ExtendedAttribute[] ExtendedAttributes { get; set; }
 

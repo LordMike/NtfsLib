@@ -45,7 +45,7 @@
     <Compile Include="Objects\Attributes\AttributeBitmap.cs" />
     <Compile Include="Objects\Attributes\AttributeData.cs" />
     <Compile Include="Objects\Attributes\AttributeExtendedAttributeInformation.cs" />
-    <Compile Include="Objects\Attributes\AttributeExtendedAttriubtes.cs" />
+    <Compile Include="Objects\Attributes\AttributeExtendedAttributes.cs" />
     <Compile Include="Objects\Attributes\AttributeFileName.cs" />
     <Compile Include="Objects\Attributes\AttributeGeneric.cs" />
     <Compile Include="Objects\Attributes\AttributeIndexAllocation.cs" />
