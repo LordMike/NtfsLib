@@ -19,8 +19,8 @@ namespace NTFSLib.Objects.Specials
         public ulong TotalSectors { get; set; }
         public ulong MFTCluster { get; set; }
         public ulong MFTMirrCluster { get; set; }
-        public int MFTRecordSizeClusters { get; set; }
-        public int MFTIndexSizeClusters { get; set; }
+        public uint MFTRecordSizeClusters { get; set; }
+        public uint MFTIndexSizeClusters { get; set; }
         public ulong SerialNumber { get; set; }
         public uint Checksum { get; set; }
         public byte[] BootstrapCode { get; set; }
@@ -48,19 +48,59 @@ namespace NTFSLib.Objects.Specials
             res.TotalSectors = BitConverter.ToUInt64(data, offset + 40);
             res.MFTCluster = BitConverter.ToUInt64(data, offset + 48);
             res.MFTMirrCluster = BitConverter.ToUInt64(data, offset + 56);
-            res.MFTRecordSizeClusters = BitConverter.ToInt32(data, offset + 64);
-            res.MFTIndexSizeClusters = BitConverter.ToInt32(data, offset + 68);
+            res.MFTRecordSizeClusters = BitConverter.ToUInt32(data, offset + 64);
+            res.MFTIndexSizeClusters = BitConverter.ToUInt32(data, offset + 68);
             res.SerialNumber = BitConverter.ToUInt64(data, offset + 72);
             res.Checksum = BitConverter.ToUInt32(data, offset + 80);
 
-            if (res.MFTRecordSizeClusters < 0 || res.MFTIndexSizeClusters < 0)
-                Debugger.Break();
+            res.MFTRecordSizeClusters = InterpretClusterCount(res.MFTRecordSizeClusters);
+            res.MFTIndexSizeClusters = InterpretClusterCount(res.MFTRecordSizeClusters);
 
             res.BootstrapCode = new byte[426];
             Array.Copy(data, offset + 84, res.BootstrapCode, 0, 426);
 
             res.Signature = new byte[2];
             Array.Copy(data, offset + 510, res.Signature, 0, 2);
+
+            // Signature should always be this
+            Debug.Assert(res.Signature[0] == 0x55);
+            Debug.Assert(res.Signature[1] == 0xAA);
+
+            return res;
+        }
+
+        private static uint InterpretClusterCount(uint num)
+        {
+            // Find if this number is negative, taking into account the number of bytes needed to store it
+            int bytes = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (num >= ((uint)0xFF << (i * 8)))
+                {
+                    bytes = i + 1;
+                }
+            }
+
+            // Is it negative?
+            uint negativeNum = 0x80;
+            for (int i = 0; i < bytes; i++)
+            {
+                negativeNum = negativeNum << 8;
+            }
+
+            if ((negativeNum & num) != negativeNum)
+                // Not negative, return as-is
+                return num;
+
+            int newNumber = (int)num;
+            for (int i = bytes + 1; i < 4; i++)
+            {
+                newNumber |= 0xFF << (i * 8);
+            }
+
+            // Calculate count
+            // 2^(-1 * -10) 
+            uint res = (uint)Math.Pow(2, -newNumber);
 
             return res;
         }

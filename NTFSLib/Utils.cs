@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using NTFSLib.Objects;
 
@@ -46,6 +47,27 @@ namespace NTFSLib
 
             // Return the data
             return data;
+        }
+
+        public static void ApplyUSNPatch(byte[] data, int offset, int sectors, ushort bytesPrSector, byte[] USNNumber, byte[] USNData)
+        {
+            Debug.Assert(data.Length >= offset + sectors * bytesPrSector);
+            Debug.Assert(USNNumber.Length == 2);
+            Debug.Assert(sectors * 2 <= USNData.Length);
+
+            for (int i = 0; i < sectors; i++)
+            {
+                // Get pointer to the last two bytes
+                int blockOffset = offset + i * bytesPrSector + 510;
+
+                // Check that they match the USN Number
+                Debug.Assert(data[blockOffset] == USNNumber[0]);
+                Debug.Assert(data[blockOffset + 1] == USNNumber[1]);
+
+                // Patch in new data
+                data[blockOffset] = USNData[i * 2];
+                data[blockOffset + 1] = USNData[i * 2 + 1];
+            }
         }
     }
 }

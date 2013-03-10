@@ -69,8 +69,8 @@ namespace NTFSLib.Objects
 
             Debug.Assert(data.Length - offset >= res.OffsetToUSN + 2 + res.USNSizeWords * 2);
 
-            res.USNData = new byte[res.USNSizeWords * 2];
-            Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNSizeWords * 2);
+            res.USNData = new byte[res.USNSizeWords * 2 - 2];
+            Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNData.Length);
 
             res.FileReference = new FileReference(res.MFTNumber, res.SequenceNumber);
 
@@ -96,26 +96,6 @@ namespace NTFSLib.Objects
                 Attributes.Add(attrib);
 
                 attribOffset += attrib.TotalLength;
-            }
-        }
-
-        public void ApplyUSNPatch(byte[] data, ushort bytesPrSector)
-        {
-            // Determine sector count
-            int sectors = data.Length / bytesPrSector;
-
-            for (int i = 0; i < sectors; i++)
-            {
-                // Get pointer to the last two bytes
-                int blockOffset = i * bytesPrSector + 510;
-
-                // Check that they match the USN Number
-                Debug.Assert(data[blockOffset] == USNNumber[0]);
-                Debug.Assert(data[blockOffset + 1] == USNNumber[1]);
-
-                // Patch in new data
-                data[blockOffset] = USNData[i * 2];
-                data[blockOffset + 1] = USNData[i * 2 + 1];
             }
         }
     }

@@ -47,11 +47,11 @@ namespace NTFSLib.Objects.Specials
             res.USNNumber = new byte[2];
             Array.Copy(data, offset + res.OffsetToUSN, res.USNNumber, 0, 2);
 
-            res.USNData = new byte[res.USNSizeWords * 2];
-            Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNSizeWords * 2);
+            res.USNData = new byte[res.USNSizeWords * 2 - 2];
+            Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNData.Length);
 
             // Patch USN Data
-            ApplyUSNPatch(data, offset, ((int)res.SizeOfIndexAllocated + 24) / ntfs.Boot.BytesPrSector, ntfs.Boot.BytesPrSector, res.USNNumber, res.USNData);
+            Utils.ApplyUSNPatch(data, offset, ((int)res.SizeOfIndexAllocated + 24) / ntfs.Boot.BytesPrSector, ntfs.Boot.BytesPrSector, res.USNNumber, res.USNData);
 
             Debug.Assert(offset + res.SizeOfIndexTotal <= data.Length);
 
@@ -74,25 +74,6 @@ namespace NTFSLib.Objects.Specials
             res.Entries = entries.ToArray();
 
             return res;
-        }
-
-        private static void ApplyUSNPatch(byte[] data, int offset, int sectors, ushort bytesPrSector, byte[] USNNumber, byte[] USNData)
-        {
-            Debug.Assert(data.Length >= offset + sectors * bytesPrSector);
-
-            for (int i = 0; i < sectors; i++)
-            {
-                // Get pointer to the last two bytes
-                int blockOffset = offset + i * bytesPrSector + 510;
-
-                // Check that they match the USN Number
-                Debug.Assert(data[blockOffset] == USNNumber[0]);
-                Debug.Assert(data[blockOffset + 1] == USNNumber[1]);
-
-                // Patch in new data
-                data[blockOffset] = USNData[i * 2];
-                data[blockOffset + 1] = USNData[i * 2 + 1];
-            }
         }
     }
 }

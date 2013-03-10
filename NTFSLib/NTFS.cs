@@ -204,7 +204,7 @@ namespace NTFSLib
         private FileRecord ParseMFTRecord(byte[] data)
         {
             FileRecord record = FileRecord.ParseHeader(data, 0);
-            record.ApplyUSNPatch(data, Boot.BytesPrSector);
+            Utils.ApplyUSNPatch(data, 0, data.Length / Boot.BytesPrSector, Boot.BytesPrSector, record.USNNumber, record.USNData);
             record.ParseAttributes(data, (uint)data.Length, record.OffsetToFirstAttribute);
 
             return record;
