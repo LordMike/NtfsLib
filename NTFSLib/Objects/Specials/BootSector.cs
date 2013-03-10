@@ -19,8 +19,8 @@ namespace NTFSLib.Objects.Specials
         public ulong TotalSectors { get; set; }
         public ulong MFTCluster { get; set; }
         public ulong MFTMirrCluster { get; set; }
-        public uint MFTRecordSizeClusters { get; set; }
-        public uint MFTIndexSizeClusters { get; set; }
+        public int MFTRecordSizeClusters { get; set; }
+        public int MFTIndexSizeClusters { get; set; }
         public ulong SerialNumber { get; set; }
         public uint Checksum { get; set; }
         public byte[] BootstrapCode { get; set; }
@@ -48,10 +48,13 @@ namespace NTFSLib.Objects.Specials
             res.TotalSectors = BitConverter.ToUInt64(data, offset + 40);
             res.MFTCluster = BitConverter.ToUInt64(data, offset + 48);
             res.MFTMirrCluster = BitConverter.ToUInt64(data, offset + 56);
-            res.MFTRecordSizeClusters = BitConverter.ToUInt32(data, offset + 64);
-            res.MFTIndexSizeClusters = BitConverter.ToUInt32(data, offset + 68);
+            res.MFTRecordSizeClusters = BitConverter.ToInt32(data, offset + 64);
+            res.MFTIndexSizeClusters = BitConverter.ToInt32(data, offset + 68);
             res.SerialNumber = BitConverter.ToUInt64(data, offset + 72);
             res.Checksum = BitConverter.ToUInt32(data, offset + 80);
+
+            if (res.MFTRecordSizeClusters < 0 || res.MFTIndexSizeClusters < 0)
+                Debugger.Break();
 
             res.BootstrapCode = new byte[426];
             Array.Copy(data, offset + 84, res.BootstrapCode, 0, 426);
