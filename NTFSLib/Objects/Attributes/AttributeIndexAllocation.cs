@@ -70,7 +70,7 @@ namespace NTFSLib.Objects.Attributes
             List<IndexEntry> entries = new List<IndexEntry>();
 
             int pointer = (int)(OffsetToFirstIndex + 24);       // Offset is relative to 0x18
-            while (pointer <= SizeOfIndexTotal - pointer + 24)
+            while (pointer <= SizeOfIndexTotal + 24)
             {
                 IndexEntry entry = IndexEntry.ParseData(data, (int)SizeOfIndexTotal - pointer + 24, pointer);
 

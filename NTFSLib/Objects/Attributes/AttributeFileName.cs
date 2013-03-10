@@ -40,7 +40,7 @@ namespace NTFSLib.Objects.Attributes
             RTime = Utils.FromWinFileTime(data, offset + 32);
             AllocatedSize = BitConverter.ToUInt64(data, offset + 40);
             RealSize = BitConverter.ToUInt64(data, offset + 48);
-            FileFlags = (FileAttributes)BitConverter.ToUInt32(data, offset + 56);
+            FileFlags = (FileAttributes)BitConverter.ToInt32(data, offset + 56);
             ReservedEAsReparse = BitConverter.ToUInt32(data, offset + 60);
             FilenameLength = data[offset + 64];
             FilenameNamespace = data[offset + 65];
