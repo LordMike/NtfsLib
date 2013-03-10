@@ -8,6 +8,7 @@ using NTFSLib.Helpers;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Objects.Specials.Files;
 using RawDiskLib;
 
 namespace TestApplication
@@ -16,7 +17,7 @@ namespace TestApplication
     {
         static void Main(string[] args)
         {
-            const char driveLetter = 'C';
+            const char driveLetter = 'E';
             RawDisk disk = new RawDisk(driveLetter);
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
@@ -25,6 +26,28 @@ namespace TestApplication
             ntfs.InitializeCommon();
 
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
+
+            // Parse $AttrDef
+            AttrDef attrDef = AttrDef.ParseFile(ntfs.OpenFileRecord(ntfs.FileAttrDef));
+
+            // Parse $Secure
+            //var xy = ntfs.OpenFileRecord(ntfs.FileSecure, "$SDS");
+            //ntfs.ParseNonResidentAttributes(ntfs.FileSecure);
+
+            //byte[] data = new byte[xy.Length];
+            //xy.Read(data, 0, data.Length);
+
+            //Secure sss = Secure.ParseFile(ntfs.OpenFileRecord(ntfs.FileSecure, "$SDS"));
+
+            //public FileRecord FileSecure { get; private set; }
+            //public FileRecord FileLogFile { get; private set; }
+            //public FileRecord FileVolume { get; private set; }
+            //public FileRecord FileRootDir { get; private set; }
+            //public FileRecord FileBitmap { get; private set; }
+            //public FileRecord FileBoot { get; private set; }
+            //public FileRecord FileBadClus { get; private set; }
+            //public FileRecord FileUpCase { get; private set; }
+            //public FileRecord FileExtend { get; private set; }
 
             // Read fragmented file
             for (uint i = 0; i < ntfs.FileRecordCount; i++)

@@ -39,6 +39,8 @@
     <Compile Include="Objects\Specials\Files\AttrDefCollationRule.cs" />
     <Compile Include="Objects\Specials\Files\AttrDefItem.cs" />
     <Compile Include="Objects\Specials\Files\AttrDefType.cs" />
+    <Compile Include="Objects\Specials\Files\Secure.cs" />
+    <Compile Include="Objects\Specials\Files\SecureItem.cs" />
     <Compile Include="Objects\Specials\IndexAllocationChunk.cs" />
     <Compile Include="Objects\Enums\AttributeFlags.cs" />
     <Compile Include="Objects\Attributes\Attribute.cs" />

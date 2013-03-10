@@ -38,5 +38,11 @@ namespace NTFSLib.Utilities
 
             return BitConverter.ToUInt64(data, 0);
         }
+
+        public static void SkipBytes(this Stream stream, int count)
+        {
+            byte[] data = new byte[count];
+            stream.Read(data, 0, data.Length);
+        }
     }
 }
