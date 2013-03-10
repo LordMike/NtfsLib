@@ -1,4 +1,6 @@
-﻿namespace NTFSLib.Provider
+﻿using System.IO;
+
+namespace NTFSLib.Provider
 {
     public interface IDiskProvider
     {
@@ -11,5 +13,7 @@
 
         bool CanReadBytes(ulong offset, int bytes);
         int ReadBytes(byte[] buffer, int bufferOffset, ulong offset, int bytes);
+
+        Stream CreateDiskStream();
     }
 }

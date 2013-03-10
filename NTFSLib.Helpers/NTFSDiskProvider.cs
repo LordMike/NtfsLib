@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using NTFSLib.Provider;
 using RawDiskLib;
 
@@ -36,6 +36,11 @@ namespace NTFSLib.Helpers
 
             // Read sectors
             return _disk.ReadSectors(buffer, bufferOffset, sector, sectors);
+        }
+
+        public Stream CreateDiskStream()
+        {
+            return _disk.CreateDiskStream();
         }
     }
 }

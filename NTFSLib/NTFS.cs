@@ -381,8 +381,9 @@ namespace NTFSLib
             Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
 
             DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
+            Stream diskStream = Provider.CreateDiskStream();
 
-            return new NtfsDiskStream(this, fragments, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(this, diskStream, fragments, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
     }
 }

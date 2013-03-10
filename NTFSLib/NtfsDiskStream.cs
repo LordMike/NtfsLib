@@ -9,8 +9,8 @@ namespace NTFSLib
     public class NtfsDiskStream : Stream
     {
         private readonly NTFS _ntfs;
+        private readonly Stream _diskStream;
         private readonly DataFragment[] _fragments;
-        private int _positionFragment;
         private long _position;
         private long _length;
 
@@ -19,11 +19,14 @@ namespace NTFSLib
             get { return _position >= _length; }
         }
 
-        internal NtfsDiskStream(NTFS ntfs, DataFragment[] fragments, long length)
+        internal NtfsDiskStream(NTFS ntfs, Stream diskStream, DataFragment[] fragments, long length)
         {
             _ntfs = ntfs;
+            _diskStream = diskStream;
             _fragments = fragments.OrderBy(s => s.StartingVCN).ToArray();
+
             _length = length;
+            _position = 0;
 
             long vcn = 0;
             for (int i = 0; i < _fragments.Length; i++)
@@ -31,8 +34,6 @@ namespace NTFSLib
                 Debug.Assert(_fragments[i].StartingVCN == vcn);
                 vcn += _fragments[i].Clusters;// +_fragments[i].CompressedClusters;     // Todo: Handle compressed clusters
             }
-
-            SetPosition(0);
         }
 
         public override void Flush()
@@ -42,7 +43,7 @@ namespace NTFSLib
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            long newPosition = _position;
+            long newPosition = offset;
 
             switch (origin)
             {
@@ -53,85 +54,89 @@ namespace NTFSLib
                     newPosition += offset;
                     break;
                 case SeekOrigin.End:
-                    newPosition = _length - offset;
+                    newPosition = _length + offset;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("origin");
             }
 
-            if (IsLocationValid(newPosition))
-            {
-                SetPosition(newPosition);
-            }
-            else if (newPosition < 0)
-            {
-                SetPosition(0);
-            }
-            else if (newPosition >= _length)
-            {
-                SetPosition(_length);
-            }
+            if (newPosition < 0 || _length < newPosition)
+                throw new ArgumentOutOfRangeException("offset");
 
-            return Position;
+            // Set 
+            _position = newPosition;
+
+            return _position;
         }
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (count <= 0)
-                throw new ArgumentOutOfRangeException("count");
+            // TODO: Handle compressed & sparse files
+            int totalRead = 0;
 
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
-
-            if (offset + count > buffer.Length)
-                throw new ArgumentException("count");
-
-            // Read fragments
-            int read = 0;
-            while (count > 0 && !IsEof)
+            // Determine fragment
+            while (count > 0 && _position < _length)
             {
-                DataFragment frag = _fragments[_positionFragment];
-                long fragOffset = _position - frag.StartingVCN * _ntfs.BytesPrCluster;
-                int getLength = (int)Math.Min(_length - _position, Math.Min((int)(frag.Clusters * _ntfs.BytesPrCluster), count));
+                long fragmentOffset;
+                DataFragment fragment = FindFragment(_position, out fragmentOffset);
 
-                if (getLength <= 0)
+                long diskOffset = fragment.LCN * _ntfs.BytesPrCluster;
+                long fragmentLength = fragment.Clusters * _ntfs.BytesPrCluster;
+
+                // How much can we read?
+                int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, Math.Min(count, fragment.Clusters * _ntfs.BytesPrCluster - fragmentOffset)));
+
+                // Read it
+                _diskStream.Position = diskOffset + fragmentOffset;
+                int actualRead = _diskStream.Read(buffer, offset, toRead);
+
+                // Increments
+                count -= actualRead;
+                offset += actualRead;
+
+                _position += actualRead;
+
+                totalRead += actualRead;
+
+                // Check
+                if (actualRead == 0)
                     break;
-
-                if (_fragments[_positionFragment].IsSparseFragment)
-                {
-                    // Simulate reading
-                }
-                else
-                {
-                    // Actually read
-                    long diskOffset = frag.LCN * _ntfs.BytesPrCluster + fragOffset;
-
-                    // Get 
-                    if (!_ntfs.Provider.CanReadBytes((ulong)diskOffset, getLength))
-                        throw new InvalidOperationException("Unable to read bytes " + diskOffset + "->" + (diskOffset + getLength));
-
-                    _ntfs.Provider.ReadBytes(buffer, offset, (ulong)diskOffset, getLength);
-                }
-
-                count -= getLength;
-                offset += getLength;
-
-                read += getLength;
-
-                SetPosition(_position + getLength);
             }
 
-            return read;
+            return totalRead;
+        }
+
+        private DataFragment FindFragment(long fileIndex, out long offsetInFragment)
+        {
+            for (int i = 0; i < _fragments.Length; i++)
+            {
+                // TODO: Handle compressed & sparse
+                long fragmentStart = _fragments[i].StartingVCN * _ntfs.BytesPrCluster;
+                long fragmentEnd = fragmentStart + _fragments[i].Clusters * _ntfs.BytesPrCluster;
+
+                if (fragmentStart <= fileIndex && fileIndex < fragmentEnd)
+                {
+                    // Found
+                    offsetInFragment = fileIndex - fragmentStart;
+
+                    return _fragments[i];
+                }
+            }
+
+            offsetInFragment = -1;
+
+            return null;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            // Not implemented
+            throw new InvalidOperationException();
         }
 
         public override bool CanRead
@@ -146,6 +151,7 @@ namespace NTFSLib
 
         public override bool CanWrite
         {
+            // Not implemented
             get { return false; }
         }
 
@@ -159,50 +165,10 @@ namespace NTFSLib
             get { return _position; }
             set
             {
-                if (!IsLocationValid(value))
-                    throw new ArgumentOutOfRangeException("position");
+                if (value < 0 || _length < value)
+                    throw new ArgumentOutOfRangeException("value");
 
-                SetPosition(value);
-            }
-        }
-
-        private bool IsLocationValid(long position)
-        {
-            return 0 <= position && position <= _length;
-        }
-
-        private void SetPosition(long newPosition)
-        {
-            Debug.Assert(IsLocationValid(newPosition));
-
-            if (newPosition == _length)
-            {
-                // EOF
-                _position = newPosition;
-                _positionFragment = -1;
-            }
-            else
-            {
-                ulong position = (ulong)newPosition;
-                _positionFragment = -1;
-
-                // Find fragment
-                for (int i = 0; i < _fragments.Length; i++)
-                {
-                    DataFragment frag = _fragments[i];
-                    ulong start = (ulong)(frag.StartingVCN * _ntfs.BytesPrCluster);
-                    ulong length = (ulong)(frag.Clusters * _ntfs.BytesPrCluster);
-
-                    if (start <= position && position < start + length)
-                    {
-                        // Found it
-                        _position = newPosition;
-                        _positionFragment = i;
-                        return;
-                    }
-                }
-
-                Debug.Fail("Unreachable code!");
+                _position = value;
             }
         }
     }
