@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
-using System.Linq;
 
 namespace NTFSLib.Objects.Attributes
 {

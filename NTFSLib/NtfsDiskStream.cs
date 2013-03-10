@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using NTFSLib.Objects;
 using System.Linq;
+using NTFSLib.Objects;
 
 namespace NTFSLib
 {
