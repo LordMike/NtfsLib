@@ -22,6 +22,14 @@ namespace NTFSLib.Objects.Specials
 
         public IndexEntry[] Entries { get; set; }
 
+        public static bool IsIndexAllocationChunk(byte[] data, int offset)
+        {
+            Debug.Assert(data.Length - offset >= 4);
+            string signature = Encoding.ASCII.GetString(data, offset + 0, 4);
+
+            return signature == "INDX";
+        }
+
         public static IndexAllocationChunk ParseBody(NTFS ntfs, byte[] data, int offset)
         {
             Debug.Assert(data.Length >= 36);
