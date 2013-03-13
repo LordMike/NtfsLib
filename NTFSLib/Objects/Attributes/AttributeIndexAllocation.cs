@@ -29,7 +29,7 @@ namespace NTFSLib.Objects.Attributes
             {
                 for (int j = 0; j < NonResidentHeader.Fragments[i].Clusters; j++)
                 {
-                    int offset = (int)(NonResidentHeader.Fragments[i].StartingVCN * ntfs.BytesPrCluster + j * ntfs.BytesPrCluster);
+                    int offset = (int)((NonResidentHeader.Fragments[i].StartingVCN - NonResidentHeader.Fragments[0].StartingVCN) * ntfs.BytesPrCluster + j * ntfs.BytesPrCluster);
                     
                     if (!IndexAllocationChunk.IsIndexAllocationChunk(data, offset))
                         continue;

@@ -49,6 +49,21 @@ namespace TestApplication
             //public FileRecord FileUpCase { get; private set; }
             //public FileRecord FileExtend { get; private set; }
 
+            // Read E:\testDir\
+            //ntfs.ParseNonResidentAttributes(ntfs.FileRootDir);
+            //var x1 = ntfs.FileRootDir.Attributes.OfType<AttributeIndexAllocation>().First();
+            //var x2 = ntfs.ReadMFTRecord((uint)x1.Entries.First(s => s.ChildFileName.FileName == "testDir").FileRefence.FileId);
+            //ntfs.ParseAttributeLists(x2);
+            //ntfs.ParseNonResidentAttributes(x2);
+
+            //foreach (AttributeIndexAllocation attributeIndexAllocation in x2.Attributes.OfType<AttributeIndexAllocation>())
+            //{
+            //    Console.WriteLine(attributeIndexAllocation.Entries.Length);
+            //}
+
+            //Console.WriteLine(x2.Attributes.OfType<AttributeIndexRoot>().First().Entries.Length);
+
+
             // Read fragmented file
             for (uint i = 0; i < ntfs.FileRecordCount; i++)
             {

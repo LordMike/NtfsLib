@@ -21,6 +21,13 @@ namespace NTFSLib
 
         public static byte[] ReadFragments(NTFS ntfs, DataFragment[] fragments)
         {
+            long vcn = fragments[0].StartingVCN;
+            for (int i = 0; i < fragments.Length; i++)
+            {
+                Debug.Assert(fragments[i].StartingVCN == vcn);
+                vcn += fragments[i].Clusters;// +_fragments[i].CompressedClusters;     // Todo: Handle compressed clusters
+            }
+
             int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfs.BytesPrCluster);
 
             byte[] data = new byte[totalLength];
@@ -39,8 +46,8 @@ namespace NTFSLib
                 byte[] fragmentData = new byte[length];
                 ntfs.Provider.ReadBytes(fragmentData, 0, (ulong)offset, length);
 
-                // Calculate this fragments location in the target array
-                int destinationOffset = (int)fragment.StartingVCN * (int)ntfs.BytesPrCluster;
+                // Calculate this fragments location in the target array - take the startingVCN of the entire fragmentset into consideration
+                int destinationOffset = (int)(fragment.StartingVCN - fragments[0].StartingVCN) * (int)ntfs.BytesPrCluster;
 
                 Array.Copy(fragmentData, 0, data, destinationOffset, Math.Min(fragmentData.Length, data.Length - destinationOffset));
             }

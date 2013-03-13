@@ -49,17 +49,17 @@ namespace NTFSLib.Objects.Attributes
 
             // Parse entries
             int pointer = offset + 32;
-            do
+            while (pointer <= offset + SizeOfIndexTotal + 32)
             {
                 IndexEntry entry = IndexEntry.ParseData(data, (int)SizeOfIndexTotal - (pointer - offset) + 32, pointer);
-
-                entries.Add(entry);
 
                 if (entry.Flags.HasFlag(MFTIndexEntryFlags.LastEntry))
                     break;
 
+                entries.Add(entry);
+
                 pointer += entry.Size;
-            } while (true);
+            } 
 
             Entries = entries.ToArray();
         }
