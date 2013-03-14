@@ -344,39 +344,40 @@ namespace NTFSLib
 
         public byte[] ReadMFTRecordData(uint number)
         {
-            long offset;
             int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
+            long offset = number * length;
 
             // Calculate location
             if (InRawDiskCache(number))
             {
                 byte[] mftData = new byte[length];
-                int cacheOffset = (int)(number * length - MftRawCache.DataOffset);
+                int cacheOffset = (int)(offset - MftRawCache.DataOffset);
 
                 Array.Copy(MftRawCache.Data, cacheOffset, mftData, 0, mftData.Length);
 
+                Debug.WriteLine("Read MFT Record {0} via. mft raw cache; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
                 return mftData;
             }
 
             if (Provider.MftFileOnly)
             {
                 // Is a continous file - ignore MFT fragments
-                offset = number * length;
+                // Offset is still correct.
             }
             else if (FileMFT == null)
             {
                 // We haven't got the $MFT yet, ignore MFT fragments
-                offset = number * length + (long)(Boot.MFTCluster * BytesPrCluster);
+                // Ofsset into the MFT beginning region
+                offset += (long)(Boot.MFTCluster * BytesPrCluster);
             }
             else if (MftStream != null)
             {
-                uint fileOffset = (uint)(number * length);
                 byte[] mftData = new byte[length];
 
-                MftStream.Position = fileOffset;
+                MftStream.Position = offset;
                 MftStream.Read(mftData, 0, length);
 
-                Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, fileOffset, fileOffset + (decimal)length, length);
+                Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
                 return mftData;
             }
             else
