@@ -395,7 +395,10 @@ namespace NTFSLib
             DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
             Stream diskStream = Provider.CreateDiskStream();
 
-            return new NtfsDiskStream(this, diskStream, fragments, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+            ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
+            ushort compressionClusterCount = (ushort) Math.Pow(2, compressionUnitSize);
+
+            return new NtfsDiskStream(this, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
 
         public NtfsDirectory GetRootDirectory()

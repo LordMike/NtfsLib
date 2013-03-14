@@ -185,7 +185,7 @@ namespace NTFSLib.Objects.Attributes
                 res.NonResidentHeader.Fragments = DataFragment.ParseFragments(data, length, bodyOffset, res.NonResidentHeader.StartingVCN, res.NonResidentHeader.EndingVCN);
 
                 // Compact compressed fragments
-                if (res.NonResidentHeader.Compression != 0)
+                if (res.NonResidentHeader.CompressionUnitSize != 0)
                 {
                     List<DataFragment> fragments = res.NonResidentHeader.Fragments.ToList();
                     DataFragment.CompactCompressedFragments(fragments);

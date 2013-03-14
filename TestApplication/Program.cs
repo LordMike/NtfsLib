@@ -42,8 +42,6 @@ namespace TestApplication
                 var strm = x5.OpenRead();
                 byte[] data = new byte[strm.Length];
                 strm.Read(data, 0, data.Length);
-
-                Console.ReadLine();
             }
 
             // Read compressed file
@@ -55,13 +53,33 @@ namespace TestApplication
                 var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
                 var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
 
+                var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
+
                 Console.WriteLine(x5.MFTRecord.FileReference);
 
                 var strm = x5.OpenRead();
-                byte[] data = new byte[strm.Length];
+                byte[] data = new byte[strm.Length - 100];
+                strm.Position = 100;
                 strm.Read(data, 0, data.Length);
+            }
 
-                Console.ReadLine();
+            // Read compressed-sparse file
+            {
+                // C:\Users\Michael\Desktop\TestSparse - copy.txt
+                var x1 = ntfs.GetRootDirectory();
+                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse - Copy.txt");
+
+                var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
+
+                Console.WriteLine(x5.MFTRecord.FileReference);
+
+                var strm = x5.OpenRead();
+                byte[] data = new byte[strm.Length - 100];
+                strm.Position = 100;
+                strm.Read(data, 0, data.Length);
             }
 
             // Iterate dirs
@@ -154,7 +172,7 @@ namespace TestApplication
                 if (attributeData.First().NonResidentHeader.ContentSize > 256000000)
                     continue;
 
-                if (attributeData.First().NonResidentHeader.Compression != 0)
+                if (attributeData.First().NonResidentHeader.CompressionUnitSize != 0)
                     continue;
 
                 // Hash files

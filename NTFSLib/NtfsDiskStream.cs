@@ -13,6 +13,7 @@ namespace NTFSLib
 
         private readonly NTFS _ntfs;
         private readonly Stream _diskStream;
+        private readonly ushort _compressionClusterCount;
         private readonly DataFragment[] _fragments;
         private long _position;
         private long _length;
@@ -22,10 +23,11 @@ namespace NTFSLib
             get { return _position >= _length; }
         }
 
-        internal NtfsDiskStream(NTFS ntfs, Stream diskStream, DataFragment[] fragments, long length)
+        internal NtfsDiskStream(NTFS ntfs, Stream diskStream, DataFragment[] fragments, ushort compressionClusterCount, long length)
         {
             _ntfs = ntfs;
             _diskStream = diskStream;
+            _compressionClusterCount = compressionClusterCount;
             _fragments = fragments.OrderBy(s => s.StartingVCN).ToArray();
 
             _length = length;
@@ -104,7 +106,7 @@ namespace NTFSLib
                     int decompressedLength = (int)((fragment.Clusters + fragment.CompressedClusters) * _ntfs.BytesPrCluster);
                     int toRead = (int)Math.Min(decompressedLength - fragmentOffset, Math.Min(_length - _position, count));
 
-                    Debug.Assert(decompressedLength == 16 * _ntfs.BytesPrCluster);
+                    Debug.Assert(decompressedLength == _compressionClusterCount * _ntfs.BytesPrCluster);
 
                     if (fragmentOffset == 0 && toRead == decompressedLength)
                     {
@@ -114,7 +116,7 @@ namespace NTFSLib
                     else
                     {
                         // Decompress temporarily
-                        byte[] tmp = new byte[_compressor.BlockSize * 16];
+                        byte[] tmp = new byte[decompressedLength];
                         int decompressed = _compressor.Decompress(compressedData, 0, compressedData.Length, tmp, 0);
 
                         toRead = Math.Min(toRead, decompressed);
