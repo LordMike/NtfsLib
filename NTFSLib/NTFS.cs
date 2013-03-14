@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NTFSLib.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -16,10 +17,12 @@ namespace NTFSLib
     {
         internal IDiskProvider Provider { get; private set; }
         private WeakReference[] FileRecords { get; set; }
+        internal NtfsFileCache FileCache { get; private set; }
 
         public NTFS(IDiskProvider provider)
         {
             Provider = provider;
+            FileCache = new NtfsFileCache();
 
             InitializeNTFS();
         }
@@ -155,10 +158,19 @@ namespace NTFSLib
 
             foreach (Attribute attr in record.Attributes.Where(s => s.Type != AttributeType.DATA && s.NonResidentFlag == ResidentFlag.NonResident))
             {
-                if (attr.NonResidentHeader.EndingVCN > 0)
-                    // Get data
-                    attr.ParseAttributeNonResidentBody(this);
+                ParseNonResidentAttribute(attr);
             }
+        }
+
+        public void ParseNonResidentAttribute(Attribute attr)
+        {
+            if (Provider.MftFileOnly)
+                // Nothing to do about this
+                throw new InvalidOperationException("Provider indicates an MFT file is used. Cannot parse non-resident attributes.");
+
+            if (attr.NonResidentHeader.Fragments.Length > 0)
+                // Get data
+                attr.ParseAttributeNonResidentBody(this);
         }
 
         public void ParseAttributeLists(FileRecord record)
@@ -258,7 +270,7 @@ namespace NTFSLib
 
             if (fileName == null)
                 throw new NullReferenceException("Record has no FileName attribute");
-            
+
             string path = fileName.FileName;
 
             if (record.Flags.HasFlag(FileEntryFlags.Directory))
@@ -279,7 +291,7 @@ namespace NTFSLib
                 if (fileName == null)
                     throw new NullReferenceException("A parent record had no Filename attribute");
 
-                if (parentRecord.FileReference.FileId == (uint) SpecialMFTFiles.RootDir)
+                if (parentRecord.FileReference.FileId == (uint)SpecialMFTFiles.RootDir)
                 {
                     path = rootName + '\\' + path;
                     break;
@@ -384,6 +396,11 @@ namespace NTFSLib
             Stream diskStream = Provider.CreateDiskStream();
 
             return new NtfsDiskStream(this, diskStream, fragments, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+        }
+
+        public NtfsDirectory GetRootDirectory()
+        {
+            return (NtfsDirectory)NtfsFileEntry.CreateEntry(this, (uint)SpecialMFTFiles.RootDir);
         }
     }
 }

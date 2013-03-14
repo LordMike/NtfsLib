@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using NTFSLib;
 using NTFSLib.Helpers;
+using NTFSLib.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -17,7 +18,7 @@ namespace TestApplication
     {
         static void Main(string[] args)
         {
-            const char driveLetter = 'E';
+            const char driveLetter = 'C';
             RawDisk disk = new RawDisk(driveLetter);
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
@@ -26,6 +27,25 @@ namespace TestApplication
             ntfs.InitializeCommon();
 
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
+
+            NtfsDirectory dir = ntfs.GetRootDirectory();
+            Queue<NtfsDirectory> dirs = new Queue<NtfsDirectory>();
+            dirs.Enqueue(dir);
+
+            while (dirs.Count > 0)
+            {
+                NtfsDirectory currDir = dirs.Dequeue();
+
+                Console.WriteLine(ntfs.BuildFileName(currDir.MFTRecord,driveLetter));
+
+                foreach (NtfsDirectory subDir in currDir.ListDirectories())
+                {
+                    if (subDir.MFTRecord.FileReference.FileId == (uint)SpecialMFTFiles.RootDir)
+                        continue;
+
+                    dirs.Enqueue(subDir);
+                }
+            }
 
             // Parse $AttrDef
             AttrDef attrDef = AttrDef.ParseFile(ntfs.OpenFileRecord(ntfs.FileAttrDef));

@@ -35,6 +35,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\NtfsDirectory.cs" />
+    <Compile Include="IO\NtfsFile.cs" />
+    <Compile Include="IO\NtfsFileCache.cs" />
+    <Compile Include="IO\NtfsFileEntry.cs" />
     <Compile Include="Objects\Enums\FileNamespace.cs" />
     <Compile Include="Objects\Specials\FileNamespaceComparer.cs" />
     <Compile Include="Objects\Specials\Files\AttrDef.cs" />
