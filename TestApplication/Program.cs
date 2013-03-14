@@ -28,22 +28,41 @@ namespace TestApplication
 
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
+            // Read sparse file
+            {
+                // C:\Users\Michael\Desktop\TestSparse.txt
+                var x1 = ntfs.GetRootDirectory();
+                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse.txt");
+
+                Console.WriteLine(x5.MFTRecord.FileReference);
+
+                var strm = x5.OpenRead();
+                byte[] data = new byte[strm.Length];
+                strm.Read(data, 0, data.Length);
+
+                Console.ReadLine();
+            }
+
             // Read compressed file
-            // C:\Users\Michael\Desktop\testDoc.txt
-            var x1 = ntfs.GetRootDirectory();
-            var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
-            var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
-            var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
-            var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
+            {
+                // C:\Users\Michael\Desktop\TestDoc.txt
+                var x1 = ntfs.GetRootDirectory();
+                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
 
-            Console.WriteLine(x5.MFTRecord.FileReference);
+                Console.WriteLine(x5.MFTRecord.FileReference);
 
-            var strm = x5.OpenRead();
-            byte[] data = new byte[strm.Length];
-            strm.Read(data, 0, data.Length);
+                var strm = x5.OpenRead();
+                byte[] data = new byte[strm.Length];
+                strm.Read(data, 0, data.Length);
 
-
-            Console.ReadLine();
+                Console.ReadLine();
+            }
 
             // Iterate dirs
             //NtfsDirectory dir = ntfs.GetRootDirectory();
@@ -124,7 +143,7 @@ namespace TestApplication
 
                 string path = ntfs.BuildFileName(record, driveLetter);
 
-                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s =>  s.AttributeName == string.Empty).ToList();
+                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == string.Empty).ToList();
 
                 if (attributeData.Any(s => s.NonResidentFlag == ResidentFlag.Resident))
                     continue;

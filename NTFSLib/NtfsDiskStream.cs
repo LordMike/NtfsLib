@@ -105,6 +105,16 @@ namespace NTFSLib
                     // TODO: Indexing into the middle of compressed streams doesn't work
                     actualRead = _compressor.Decompress(compressedData, 0, compressedData.Length, buffer, offset);
                 }
+                else if (fragment.IsSparseFragment)
+                {
+                    // Fill with zeroes
+                    // How much to fill?
+                    int toFill = (int)Math.Min(fragmentLength - fragmentOffset, count);
+
+                    Array.Clear(buffer, offset, toFill);
+
+                    actualRead = toFill;
+                }
                 else
                 {
                     // Read directly
