@@ -109,7 +109,7 @@ namespace NTFSLib
                 {
                     // Read directly
                     // How much can we read?
-                    int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, Math.Min(count, fragment.Clusters * _ntfs.BytesPrCluster - fragmentOffset)));
+                    int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, count));
 
                     // Read it
                     _diskStream.Position = diskOffset + fragmentOffset;
