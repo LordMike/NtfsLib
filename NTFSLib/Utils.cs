@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NTFSLib.Objects;
+using NTFSLib.Objects.Attributes;
+using NTFSLib.Objects.Enums;
+using NTFSLib.Objects.Specials;
 
 namespace NTFSLib
 {
@@ -75,6 +79,11 @@ namespace NTFSLib
                 data[blockOffset] = USNData[i * 2];
                 data[blockOffset + 1] = USNData[i * 2 + 1];
             }
+        }
+
+        public static AttributeFileName GetPreferredDisplayName(FileRecord record)
+        {
+            return record.Attributes.OfType<AttributeFileName>().OrderByDescending(s => s.FilenameNamespace, new FileNamespaceComparer()).FirstOrDefault();
         }
     }
 }

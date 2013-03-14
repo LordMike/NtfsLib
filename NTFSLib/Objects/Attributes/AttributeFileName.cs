@@ -18,7 +18,7 @@ namespace NTFSLib.Objects.Attributes
         public FileAttributes FileFlags { get; set; }
         public uint ReservedEAsReparse { get; set; }
         public byte FilenameLength { get; set; }
-        public byte FilenameNamespace { get; set; }
+        public FileNamespace FilenameNamespace { get; set; }
         public string FileName { get; set; }
 
         public override AttributeResidentAllow AllowedResidentStates
@@ -43,7 +43,7 @@ namespace NTFSLib.Objects.Attributes
             FileFlags = (FileAttributes)BitConverter.ToInt32(data, offset + 56);
             ReservedEAsReparse = BitConverter.ToUInt32(data, offset + 60);
             FilenameLength = data[offset + 64];
-            FilenameNamespace = data[offset + 65];
+            FilenameNamespace = (FileNamespace) data[offset + 65];
 
             Debug.Assert(maxLength >= 66 + FilenameLength * 2);
 

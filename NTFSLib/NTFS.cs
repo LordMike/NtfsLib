@@ -254,8 +254,8 @@ namespace NTFSLib
         public string BuildFileName(FileRecord record, string rootName)
         {
             // Get filename (and prefer the non-8dot3 variant)
-            AttributeFileName fileName = record.Attributes.OfType<AttributeFileName>().OrderBy(s => s.FileName.Count(x => x == '~')).FirstOrDefault();
-            
+            AttributeFileName fileName = Utils.GetPreferredDisplayName(record);
+
             if (fileName == null)
                 throw new NullReferenceException("Record has no FileName attribute");
             
@@ -274,7 +274,7 @@ namespace NTFSLib
                 if (parentRecord == null)
                     throw new NullReferenceException("A parent record was null");
 
-                fileName = parentRecord.Attributes.OfType<AttributeFileName>().OrderBy(s => s.FileName.Count(x => x == '~')).FirstOrDefault();
+                fileName = Utils.GetPreferredDisplayName(parentRecord);
 
                 if (fileName == null)
                     throw new NullReferenceException("A parent record had no Filename attribute");

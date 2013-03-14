@@ -35,6 +35,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Enums\FileNamespace.cs" />
+    <Compile Include="Objects\Specials\FileNamespaceComparer.cs" />
     <Compile Include="Objects\Specials\Files\AttrDef.cs" />
     <Compile Include="Objects\Specials\Files\AttrDefCollationRule.cs" />
     <Compile Include="Objects\Specials\Files\AttrDefItem.cs" />
