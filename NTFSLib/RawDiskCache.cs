@@ -8,7 +8,7 @@
 
         public bool Initialized
         {
-            get { return DataOffset != 0 && Length != 0; }
+            get { return Length != 0; }
         }
 
         public RawDiskCache(int size)

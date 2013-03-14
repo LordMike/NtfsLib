@@ -20,13 +20,15 @@ namespace NTFSLib
         private WeakReference[] FileRecords { get; set; }
         internal NtfsFileCache FileCache { get; private set; }
         private Stream MftStream { get; set; }
+
+        private readonly int _rawDiskCacheSizeRecords;
         private RawDiskCache MftRawCache { get; set; }
 
-        public NTFS(IDiskProvider provider)
+        public NTFS(IDiskProvider provider, int rawDiskCacheSizeRecords)
         {
+            _rawDiskCacheSizeRecords = rawDiskCacheSizeRecords;
             Provider = provider;
             FileCache = new NtfsFileCache();
-            MftRawCache = new RawDiskCache(512 * 1024 * 1024);     // 512 MB
 
             InitializeNTFS();
         }
@@ -78,6 +80,9 @@ namespace NTFSLib
             // Get FileRecord size
             RefreshFileRecordSize();
 
+            // Prep cache
+            MftRawCache = new RawDiskCache((int)(_rawDiskCacheSizeRecords * BytesPrFileRecord));
+
             // Read $MFT file record
             {
                 byte[] data = ReadMFTRecordData((uint)SpecialMFTFiles.MFT);
@@ -117,6 +122,8 @@ namespace NTFSLib
 
             uint offset = number * BytesPrFileRecord;
             int toRead = (int)Math.Min(MftStream.Length - offset, MftRawCache.Data.Length);
+
+            Debug.WriteLine("Fetching {0:N0} bytes (record #{1:N0}) from disk into RawDiskCache", toRead, number);
 
             // Read
             MftStream.Position = offset;
