@@ -35,6 +35,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\LZNT1.cs" />
+    <Compile Include="Compression\CompressionResult.cs" />
+    <Compile Include="Compression\LzWindowDictionary.cs" />
     <Compile Include="IO\NtfsDirectory.cs" />
     <Compile Include="IO\NtfsFile.cs" />
     <Compile Include="IO\NtfsFileCache.cs" />

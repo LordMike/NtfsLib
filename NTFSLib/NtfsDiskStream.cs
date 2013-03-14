@@ -2,12 +2,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NTFSLib.Compression;
 using NTFSLib.Objects;
 
 namespace NTFSLib
 {
     public class NtfsDiskStream : Stream
     {
+        private LZNT1 _compressor;
+
         private readonly NTFS _ntfs;
         private readonly Stream _diskStream;
         private readonly DataFragment[] _fragments;
@@ -28,11 +31,14 @@ namespace NTFSLib
             _length = length;
             _position = 0;
 
+            _compressor = new LZNT1();
+            _compressor.BlockSize = (int)ntfs.BytesPrCluster;
+
             long vcn = 0;
             for (int i = 0; i < _fragments.Length; i++)
             {
                 Debug.Assert(_fragments[i].StartingVCN == vcn);
-                vcn += _fragments[i].Clusters;// +_fragments[i].CompressedClusters;     // Todo: Handle compressed clusters
+                vcn += _fragments[i].Clusters + _fragments[i].CompressedClusters;
             }
         }
 
@@ -88,12 +94,27 @@ namespace NTFSLib
                 long diskOffset = fragment.LCN * _ntfs.BytesPrCluster;
                 long fragmentLength = fragment.Clusters * _ntfs.BytesPrCluster;
 
-                // How much can we read?
-                int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, Math.Min(count, fragment.Clusters * _ntfs.BytesPrCluster - fragmentOffset)));
+                int actualRead;
+                if (fragment.IsCompressed)
+                {
+                    // Read and decompress
+                    byte[] compressedData = new byte[fragmentLength];
+                    _diskStream.Position = diskOffset + fragmentOffset;
+                    _diskStream.Read(compressedData, 0, compressedData.Length);
 
-                // Read it
-                _diskStream.Position = diskOffset + fragmentOffset;
-                int actualRead = _diskStream.Read(buffer, offset, toRead);
+                    // TODO: Indexing into the middle of compressed streams doesn't work
+                    actualRead = _compressor.Decompress(compressedData, 0, compressedData.Length, buffer, offset);
+                }
+                else
+                {
+                    // Read directly
+                    // How much can we read?
+                    int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, Math.Min(count, fragment.Clusters * _ntfs.BytesPrCluster - fragmentOffset)));
+
+                    // Read it
+                    _diskStream.Position = diskOffset + fragmentOffset;
+                    actualRead = _diskStream.Read(buffer, offset, toRead);
+                }
 
                 // Increments
                 count -= actualRead;
@@ -115,9 +136,8 @@ namespace NTFSLib
         {
             for (int i = 0; i < _fragments.Length; i++)
             {
-                // TODO: Handle compressed & sparse
                 long fragmentStart = _fragments[i].StartingVCN * _ntfs.BytesPrCluster;
-                long fragmentEnd = fragmentStart + _fragments[i].Clusters * _ntfs.BytesPrCluster;
+                long fragmentEnd = fragmentStart + (_fragments[i].Clusters + _fragments[i].CompressedClusters) * _ntfs.BytesPrCluster;
 
                 if (fragmentStart <= fileIndex && fileIndex < fragmentEnd)
                 {

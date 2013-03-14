@@ -28,24 +28,43 @@ namespace TestApplication
 
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
-            NtfsDirectory dir = ntfs.GetRootDirectory();
-            Queue<NtfsDirectory> dirs = new Queue<NtfsDirectory>();
-            dirs.Enqueue(dir);
+            // Read compressed file
+            // C:\Users\Michael\Desktop\testDoc.txt
+            var x1 = ntfs.GetRootDirectory();
+            var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+            var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+            var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+            var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
 
-            while (dirs.Count > 0)
-            {
-                NtfsDirectory currDir = dirs.Dequeue();
+            Console.WriteLine(x5.MFTRecord.FileReference);
 
-                Console.WriteLine(ntfs.BuildFileName(currDir.MFTRecord,driveLetter));
+            var strm = x5.OpenRead();
+            byte[] data = new byte[strm.Length];
+            strm.Read(data, 0, data.Length);
 
-                foreach (NtfsDirectory subDir in currDir.ListDirectories())
-                {
-                    if (subDir.MFTRecord.FileReference.FileId == (uint)SpecialMFTFiles.RootDir)
-                        continue;
 
-                    dirs.Enqueue(subDir);
-                }
-            }
+            Console.ReadLine();
+
+            // Iterate dirs
+            //NtfsDirectory dir = ntfs.GetRootDirectory();
+            //Queue<NtfsDirectory> dirs = new Queue<NtfsDirectory>();
+            //dirs.Enqueue(dir);
+
+            //while (dirs.Count > 0)
+            //{
+            //    NtfsDirectory currDir = dirs.Dequeue();
+
+            //    Console.WriteLine(ntfs.BuildFileName(currDir.MFTRecord,driveLetter));
+
+            //    foreach (NtfsDirectory subDir in currDir.ListDirectories())
+            //    {
+            //        if (subDir.MFTRecord.FileReference.FileId == (uint)SpecialMFTFiles.RootDir)
+            //            continue;
+
+            //        dirs.Enqueue(subDir);
+            //    }
+            //}
+
 
             // Parse $AttrDef
             AttrDef attrDef = AttrDef.ParseFile(ntfs.OpenFileRecord(ntfs.FileAttrDef));
