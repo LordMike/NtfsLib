@@ -355,7 +355,7 @@ namespace NTFSLib
 
                 Array.Copy(MftRawCache.Data, cacheOffset, mftData, 0, mftData.Length);
 
-                Debug.WriteLine("Read MFT Record {0} via. mft raw cache; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
+                Debug.WriteLine("Read MFT Record {0} via. mft raw cache; bytes {1}->{2} ({3} bytes)", number, offset, offset + (long)length, length);
                 return mftData;
             }
 
@@ -377,7 +377,7 @@ namespace NTFSLib
                 MftStream.Position = offset;
                 MftStream.Read(mftData, 0, length);
 
-                Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
+                Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, offset, offset + (long)length, length);
                 return mftData;
             }
             else
@@ -387,11 +387,11 @@ namespace NTFSLib
 
             if (!Provider.CanReadBytes((ulong)offset, length))
             {
-                Debug.WriteLine("Couldn't read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
+                Debug.WriteLine("Couldn't read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (long)length, length);
                 return new byte[0];
             }
 
-            Debug.WriteLine("Read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (decimal)length, length);
+            Debug.WriteLine("Read MFT Record {0}; bytes {1}->{2} ({3} bytes)", number, offset, offset + (long)length, length);
             byte[] data = new byte[length];
             Provider.ReadBytes(data, 0, (ulong)offset, length);
 
