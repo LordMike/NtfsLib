@@ -58,11 +58,11 @@ namespace NTFSLib.Utilities
             return data;
         }
 
-        public static void ApplyUSNPatch(byte[] data, int offset, int sectors, ushort bytesPrSector, byte[] USNNumber, byte[] USNData)
+        public static void ApplyUSNPatch(byte[] data, int offset, int sectors, ushort bytesPrSector, byte[] usnNumber, byte[] usnData)
         {
             Debug.Assert(data.Length >= offset + sectors * bytesPrSector);
-            Debug.Assert(USNNumber.Length == 2);
-            Debug.Assert(sectors * 2 <= USNData.Length);
+            Debug.Assert(usnNumber.Length == 2);
+            Debug.Assert(sectors * 2 <= usnData.Length);
 
             for (int i = 0; i < sectors; i++)
             {
@@ -70,12 +70,12 @@ namespace NTFSLib.Utilities
                 int blockOffset = offset + i * bytesPrSector + 510;
 
                 // Check that they match the USN Number
-                Debug.Assert(data[blockOffset] == USNNumber[0]);
-                Debug.Assert(data[blockOffset + 1] == USNNumber[1]);
+                Debug.Assert(data[blockOffset] == usnNumber[0]);
+                Debug.Assert(data[blockOffset + 1] == usnNumber[1]);
 
                 // Patch in new data
-                data[blockOffset] = USNData[i * 2];
-                data[blockOffset + 1] = USNData[i * 2 + 1];
+                data[blockOffset] = usnData[i * 2];
+                data[blockOffset + 1] = usnData[i * 2 + 1];
             }
         }
 
