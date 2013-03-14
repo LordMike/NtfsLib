@@ -82,7 +82,6 @@ namespace NTFSLib
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            // TODO: Handle compressed & sparse files
             int totalRead = 0;
 
             // Determine fragment
@@ -121,7 +120,7 @@ namespace NTFSLib
                         toRead = Math.Min(toRead, decompressed);
 
                         // Copy wanted data
-                        Array.Copy(tmp, 0, buffer, offset, toRead);
+                        Array.Copy(tmp, fragmentOffset, buffer, offset, toRead);
 
                         actualRead = toRead;
                     }
