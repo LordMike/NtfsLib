@@ -1,6 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFS.Tests.Helpers;
 using NTFSLib.Objects;
+using System.Linq;
 
 namespace NTFS.Tests
 {
@@ -121,5 +123,21 @@ namespace NTFS.Tests
             DataFragmentHelpers.CheckFragment(fragments[60], 17, 0, 1248, 0x31, 141728209, false, false);
             DataFragmentHelpers.CheckFragment(fragments[61], 6703, 0, 1265, 0x32, 142320089, false, false);
         }
+
+        [TestMethod]
+        public void ActualFragmentRun5()
+        {
+            // Mikes Disk C: MFT# -- Data Non-Resident (Sparse & Compressed)
+            byte[] data = new byte[] { 0x01, 0x60, 0x41, 0x02, 0x6C, 0xB3, 0xAA, 0x00, 0x01, 0x0E, 0x11, 0x01, 0x10, 0x01, 0x0F, 0x00 };
+            List<DataFragment> fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 127).ToList();
+            DataFragment.CompactCompressedFragments(fragments);
+
+            Assert.AreEqual(3, fragments.Count);
+
+            DataFragmentHelpers.CheckFragment(fragments[0], 96, 0, 0, 0x01, 0, true, false);
+            DataFragmentHelpers.CheckFragment(fragments[1], 2, 14, 96, 0x41, 11187052, false, true);
+            DataFragmentHelpers.CheckFragment(fragments[2], 1, 15, 112, 0x11, 11187068, false, true);
+        }
     }
 }
+
