@@ -77,19 +77,19 @@ namespace NTFSLib.IO
 
                 foreach (IndexEntry entry in _indexRoot.Entries)
                 {
-                    if (entries.ContainsKey((uint)entry.FileRefence.FileId))
+                    if (entries.ContainsKey(entry.FileRefence.FileId))
                     {
                         // Is this better?
-                        int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[(uint)entry.FileRefence.FileId].FileName.FilenameNamespace);
+                        int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[entry.FileRefence.FileId].FileName.FilenameNamespace);
 
                         if (comp == 1)
                         {
                             // New entry is better
-                            entries[(uint)entry.FileRefence.FileId] = CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                            entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                         }
                     }
                     else
-                        entries[(uint)entry.FileRefence.FileId] = CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                        entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                 }
 
                 if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
@@ -101,16 +101,16 @@ namespace NTFSLib.IO
                             if (entries.ContainsKey((uint)entry.FileRefence.FileId))
                             {
                                 // Is this better?
-                                int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[(uint)entry.FileRefence.FileId].FileName.FilenameNamespace);
+                                int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[entry.FileRefence.FileId].FileName.FilenameNamespace);
 
                                 if (comp == 1)
                                 {
                                     // New entry is better
-                                    entries[(uint)entry.FileRefence.FileId] = CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                                    entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                                 }
                             }
                             else
-                                entries[(uint)entry.FileRefence.FileId] = CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                                entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                         }
                     }
                 }
@@ -124,7 +124,7 @@ namespace NTFSLib.IO
             {
                 foreach (IndexEntry entry in _indexRoot.Entries)
                 {
-                    yield return CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                    yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                 }
 
                 if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
@@ -133,7 +133,7 @@ namespace NTFSLib.IO
                     {
                         foreach (IndexEntry entry in index.Entries)
                         {
-                            yield return CreateEntry((uint)entry.FileRefence.FileId, entry.ChildFileName);
+                            yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
                         }
                     }
                 }

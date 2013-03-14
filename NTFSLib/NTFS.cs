@@ -26,7 +26,7 @@ namespace NTFSLib
         {
             Provider = provider;
             FileCache = new NtfsFileCache();
-            MftRawCache = new RawDiskCache(128 * 1024 * 1024);     // 128 MB
+            MftRawCache = new RawDiskCache(512 * 1024 * 1024);     // 512 MB
 
             InitializeNTFS();
         }
@@ -229,7 +229,7 @@ namespace NTFSLib
                         // Skip own attributes
                         continue;
 
-                    FileRecord otherRecord = ReadMFTRecord((uint)item.BaseFile.FileId);
+                    FileRecord otherRecord = ReadMFTRecord(item.BaseFile.FileId);
 
                     Debug.Assert(otherRecord.FileReference.Equals(item.BaseFile));
 
@@ -261,13 +261,14 @@ namespace NTFSLib
 
         public FileRecord ReadMFTRecord(uint number)
         {
-            if (number <= FileRecords.Length && FileRecords[number] != null && FileRecords[number].IsAlive)
+            FileRecord record;
+            if (number <= FileRecords.Length && FileRecords[number] != null && (record = FileRecords[number].Target as FileRecord) != null)
             {
-                return (FileRecord)FileRecords[number].Target;
+                return record;
             }
 
             byte[] data = ReadMFTRecordData(number);
-            FileRecord record = ParseMFTRecord(data);
+            record = ParseMFTRecord(data);
 
             FileRecords[number] = new WeakReference(record);
 
@@ -313,7 +314,7 @@ namespace NTFSLib
             do
             {
                 // Get parent
-                parentRecord = ReadMFTRecord((uint)fileName.ParentDirectory.FileId);
+                parentRecord = ReadMFTRecord(fileName.ParentDirectory.FileId);
 
                 if (parentRecord == null)
                     throw new NullReferenceException("A parent record was null");

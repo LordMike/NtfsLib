@@ -24,7 +24,7 @@ namespace NTFSLib.IO
         {
             get
             {
-                return CreateEntry((uint)FileName.ParentDirectory.FileId) as NtfsDirectory;
+                return CreateEntry(FileName.ParentDirectory.FileId) as NtfsDirectory;
             }
         }
 
