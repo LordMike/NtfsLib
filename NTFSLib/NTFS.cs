@@ -19,11 +19,13 @@ namespace NTFSLib
         private WeakReference[] FileRecords { get; set; }
         internal NtfsFileCache FileCache { get; private set; }
         private Stream MftStream { get; set; }
+        private RawDiskCache MftRawCache { get; set; }
 
         public NTFS(IDiskProvider provider)
         {
             Provider = provider;
             FileCache = new NtfsFileCache();
+            MftRawCache = new RawDiskCache(128 * 1024 * 1024);     // 128 MB
 
             InitializeNTFS();
         }
@@ -105,6 +107,32 @@ namespace NTFSLib
 
                 NTFSVersion = new Version(attrib.MajorVersion, attrib.MinorVersion);
             }
+        }
+
+        public void PrepRawDiskCache(uint number)
+        {
+            Debug.Assert(MftStream != null);
+            Debug.Assert(BytesPrFileRecord > 0);
+
+            uint offset = number * BytesPrFileRecord;
+            int toRead = (int)Math.Min(MftStream.Length - offset, MftRawCache.Data.Length);
+
+            // Read
+            MftStream.Position = offset;
+            MftStream.Read(MftRawCache.Data, 0, toRead);
+
+            // Set props
+            MftRawCache.DataOffset = offset;
+            MftRawCache.Length = toRead;
+        }
+
+        public bool InRawDiskCache(uint number)
+        {
+            if (MftRawCache.Initialized && MftRawCache.DataOffset / BytesPrFileRecord <= number &&
+                number <= MftRawCache.DataOffset / BytesPrFileRecord + MftRawCache.Length / BytesPrFileRecord - 1)
+                return true;
+
+            return false;
         }
 
         public void InitializeCommon()
@@ -311,6 +339,16 @@ namespace NTFSLib
             int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
 
             // Calculate location
+            if (InRawDiskCache(number))
+            {
+                byte[] mftData = new byte[length];
+                int cacheOffset = (int)(number * length - MftRawCache.DataOffset);
+
+                Array.Copy(MftRawCache.Data, cacheOffset, mftData, 0, mftData.Length);
+
+                return mftData;
+            }
+
             if (Provider.MftFileOnly)
             {
                 // Is a continous file - ignore MFT fragments
@@ -381,7 +419,7 @@ namespace NTFSLib
             Stream diskStream = Provider.CreateDiskStream();
 
             ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
-            ushort compressionClusterCount = (ushort) Math.Pow(2, compressionUnitSize);
+            ushort compressionClusterCount = (ushort)Math.Pow(2, compressionUnitSize);
 
             return new NtfsDiskStream(this, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }

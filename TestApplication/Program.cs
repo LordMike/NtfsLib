@@ -6,7 +6,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using NTFSLib;
 using NTFSLib.Helpers;
-using NTFSLib.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -148,7 +147,10 @@ namespace TestApplication
             // Read fragmented file
             for (uint i = 0; i < ntfs.FileRecordCount; i++)
             {
-                if (!bitmapData[(int) i])
+                if (!ntfs.InRawDiskCache(i))
+                    ntfs.PrepRawDiskCache(i);
+
+                if (!bitmapData[(int)i])
                     continue;
 
                 FileRecord record = ntfs.ReadMFTRecord(i);
