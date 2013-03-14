@@ -18,6 +18,7 @@ namespace NTFSLib
         internal IDiskProvider Provider { get; private set; }
         private WeakReference[] FileRecords { get; set; }
         internal NtfsFileCache FileCache { get; private set; }
+        private Stream MftStream { get; set; }
 
         public NTFS(IDiskProvider provider)
         {
@@ -84,6 +85,8 @@ namespace NTFSLib
             AttributeData fileMftData = FileMFT.Attributes.OfType<AttributeData>().Single();
             Debug.Assert(fileMftData.NonResidentFlag == ResidentFlag.NonResident);
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
+
+            MftStream = OpenFileRecord(FileMFT);
 
             // Get number of FileRecords 
             FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => (float)s.Clusters) * (BytesPrCluster / BytesPrFileRecord));
@@ -318,38 +321,20 @@ namespace NTFSLib
                 // We haven't got the $MFT yet, ignore MFT fragments
                 offset = number * length + (long)(Boot.MFTCluster * BytesPrCluster);
             }
+            else if (MftStream != null)
+            {
+                uint fileOffset = (uint)(number * length);
+                byte[] mftData = new byte[length];
+
+                MftStream.Position = fileOffset;
+                MftStream.Read(mftData, 0, length);
+
+                Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, fileOffset, fileOffset + (decimal)length, length);
+                return mftData;
+            }
             else
             {
-                // Find fragment(s)
-                AttributeData dataAttribute = FileMFT.Attributes.OfType<AttributeData>().First();
-
-                Debug.Assert(dataAttribute.NonResidentFlag == ResidentFlag.NonResident);
-
-                uint fileOffset = (uint)(number * length);
-                long fileVcn = fileOffset / BytesPrCluster;
-                decimal lengthClusters = length / (decimal)BytesPrCluster;
-
-                // Find relevant fragment
-                DataFragment fragment = null;
-
-                for (int i = 0; i < dataAttribute.DataFragments.Length; i++)
-                {
-                    DataFragment tmpFragment = dataAttribute.DataFragments[i];
-                    if (tmpFragment.StartingVCN <= fileVcn &&
-                        tmpFragment.StartingVCN + tmpFragment.Clusters >= fileVcn + lengthClusters)
-                    {
-                        fragment = tmpFragment;
-                        break;
-                    }
-                }
-
-                Debug.Assert(fragment != null);
-
-                // Calculate offset inside fragment
-                long fragmentOffset = fragment.StartingVCN * BytesPrCluster;
-                long fileOffsetInFragment = fileOffset - fragmentOffset;
-
-                offset = fragment.LCN * BytesPrCluster + fileOffsetInFragment;
+                throw new Exception("Shouldn't happen");
             }
 
             if (!Provider.CanReadBytes((ulong)offset, length))
