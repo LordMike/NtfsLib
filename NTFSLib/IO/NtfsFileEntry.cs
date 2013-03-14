@@ -4,6 +4,7 @@ using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using System.Linq;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.IO
 {
@@ -46,7 +47,7 @@ namespace NTFSLib.IO
             {
                 // Dig up a preferred name
                 FileRecord tmpRecord = ntfs.ReadMFTRecord(fileId);
-                fileName = Utils.GetPreferredDisplayName(tmpRecord);
+                fileName = NtfsUtils.GetPreferredDisplayName(tmpRecord);
             }
 
             NtfsFileEntry entry = ntfs.FileCache.Get(fileId, fileName.FileName.GetHashCode());

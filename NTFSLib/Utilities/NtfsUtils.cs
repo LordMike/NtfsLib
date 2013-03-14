@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
-using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
 
-namespace NTFSLib
+namespace NTFSLib.Utilities
 {
-    public static class Utils
+    public static class NtfsUtils
     {
         private static readonly long MaxFileTime = DateTime.MaxValue.ToFileTimeUtc();
 

@@ -9,6 +9,7 @@ using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
 using NTFSLib.Provider;
+using NTFSLib.Utilities;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib
@@ -247,7 +248,7 @@ namespace NTFSLib
         private FileRecord ParseMFTRecord(byte[] data)
         {
             FileRecord record = FileRecord.ParseHeader(data, 0);
-            Utils.ApplyUSNPatch(data, 0, data.Length / Boot.BytesPrSector, Boot.BytesPrSector, record.USNNumber, record.USNData);
+            NtfsUtils.ApplyUSNPatch(data, 0, data.Length / Boot.BytesPrSector, Boot.BytesPrSector, record.USNNumber, record.USNData);
             record.ParseAttributes(data, (uint)data.Length, record.OffsetToFirstAttribute);
 
             return record;
@@ -297,7 +298,7 @@ namespace NTFSLib
         public string BuildFileName(FileRecord record, string rootName)
         {
             // Get filename (and prefer the non-8dot3 variant)
-            AttributeFileName fileName = Utils.GetPreferredDisplayName(record);
+            AttributeFileName fileName = NtfsUtils.GetPreferredDisplayName(record);
 
             if (fileName == null)
                 throw new NullReferenceException("Record has no FileName attribute");
@@ -317,7 +318,7 @@ namespace NTFSLib
                 if (parentRecord == null)
                     throw new NullReferenceException("A parent record was null");
 
-                fileName = Utils.GetPreferredDisplayName(parentRecord);
+                fileName = NtfsUtils.GetPreferredDisplayName(parentRecord);
 
                 if (fileName == null)
                     throw new NullReferenceException("A parent record had no Filename attribute");

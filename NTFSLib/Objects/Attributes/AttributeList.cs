@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -46,7 +47,7 @@ namespace NTFSLib.Objects.Attributes
             base.ParseAttributeNonResidentBody(ntfs);
 
             // Get all chunks
-            byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfs, NonResidentHeader.Fragments);
 
             // Parse
             List<AttributeListItem> results = new List<AttributeListItem>();

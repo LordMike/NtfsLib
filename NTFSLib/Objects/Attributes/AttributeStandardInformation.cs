@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -34,10 +35,10 @@ namespace NTFSLib.Objects.Attributes
 
             Debug.Assert(maxLength >= 48);
 
-            TimeCreated = Utils.FromWinFileTime(data, offset);
-            TimeModified = Utils.FromWinFileTime(data, offset + 8);
-            TimeMftModified = Utils.FromWinFileTime(data, offset + 16);
-            TimeAccessed = Utils.FromWinFileTime(data, offset + 24);
+            TimeCreated = NtfsUtils.FromWinFileTime(data, offset);
+            TimeModified = NtfsUtils.FromWinFileTime(data, offset + 8);
+            TimeMftModified = NtfsUtils.FromWinFileTime(data, offset + 16);
+            TimeAccessed = NtfsUtils.FromWinFileTime(data, offset + 24);
             DosPermissions = (FileAttributes)BitConverter.ToInt32(data, offset + 32);
 
             MaxmiumVersions = BitConverter.ToUInt32(data, offset + 36);

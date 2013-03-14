@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -34,10 +35,10 @@ namespace NTFSLib.Objects.Attributes
             base.ParseAttributeResidentBody(data, maxLength, offset);
 
             ParentDirectory = new FileReference(BitConverter.ToUInt64(data, offset));
-            CTime = Utils.FromWinFileTime(data, offset + 8);
-            ATime = Utils.FromWinFileTime(data, offset + 16);
-            MTime = Utils.FromWinFileTime(data, offset + 24);
-            RTime = Utils.FromWinFileTime(data, offset + 32);
+            CTime = NtfsUtils.FromWinFileTime(data, offset + 8);
+            ATime = NtfsUtils.FromWinFileTime(data, offset + 16);
+            MTime = NtfsUtils.FromWinFileTime(data, offset + 24);
+            RTime = NtfsUtils.FromWinFileTime(data, offset + 32);
             AllocatedSize = BitConverter.ToUInt64(data, offset + 40);
             RealSize = BitConverter.ToUInt64(data, offset + 48);
             FileFlags = (FileAttributes)BitConverter.ToInt32(data, offset + 56);

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Attributes
 {
@@ -19,7 +20,7 @@ namespace NTFSLib.Objects.Attributes
 
         internal override void ParseAttributeNonResidentBody(NTFS ntfs)
         {
-            byte[] data = Utils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfs, NonResidentHeader.Fragments);
 
             List<IndexAllocationChunk> indexes = new List<IndexAllocationChunk>();
             List<IndexEntry> entries = new List<IndexEntry>();

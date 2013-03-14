@@ -97,7 +97,7 @@
     <Compile Include="IO\NtfsDiskStream.cs" />
     <Compile Include="RawDiskCache.cs" />
     <Compile Include="Utilities\StreamHelper.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Utilities\NtfsUtils.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
