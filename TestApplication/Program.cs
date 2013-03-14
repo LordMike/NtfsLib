@@ -105,7 +105,7 @@ namespace TestApplication
 
                 string path = ntfs.BuildFileName(record, driveLetter);
 
-                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == "") || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == "")).ToList();
+                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s =>  s.AttributeName == string.Empty).ToList();
 
                 if (attributeData.Any(s => s.NonResidentFlag == ResidentFlag.Resident))
                     continue;

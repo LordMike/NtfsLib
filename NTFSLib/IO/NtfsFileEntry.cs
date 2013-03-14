@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
+using System.Linq;
 
 namespace NTFSLib.IO
 {
@@ -66,6 +68,16 @@ namespace NTFSLib.IO
             ntfs.FileCache.Set(fileId, fileName.Id, entry);
 
             return entry;
+        }
+
+        public string[] GetStreamList()
+        {
+            return MFTRecord.Attributes.OfType<AttributeData>().Select(s => s.AttributeName).ToArray();
+        }
+
+        public Stream OpenRead(string dataStream = "")
+        {
+            return Ntfs.OpenFileRecord(MFTRecord, dataStream);
         }
     }
 }

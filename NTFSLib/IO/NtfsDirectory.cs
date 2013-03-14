@@ -10,6 +10,8 @@ namespace NTFSLib.IO
 {
     public class NtfsDirectory : NtfsFileEntry
     {
+        private const string DirlistAttribName = "$I30";
+
         private AttributeIndexRoot _indexRoot;
         private AttributeIndexAllocation[] _indexes;
 
@@ -42,15 +44,18 @@ namespace NTFSLib.IO
                 Ntfs.ParseAttributeLists(MFTRecord);
 
             // Get root
-            _indexRoot = MFTRecord.Attributes.OfType<AttributeIndexRoot>().Single();
+            _indexRoot = MFTRecord.Attributes.OfType<AttributeIndexRoot>().Single(s => s.AttributeName == DirlistAttribName);
 
             // Get allocations
-            _indexes = MFTRecord.Attributes.OfType<AttributeIndexAllocation>().ToArray();
+            _indexes = MFTRecord.Attributes.OfType<AttributeIndexAllocation>().Where(s => s.AttributeName == DirlistAttribName).ToArray();
 
             foreach (AttributeIndexAllocation index in _indexes)
             {
                 Ntfs.ParseNonResidentAttribute(index);
             }
+
+            // Get bitmap of allocations
+            // var bitmap = MFTRecord.Attributes.OfType<AttributeBitmap>().Single(s => s.AttributeName == DirlistAttribName);
         }
 
         public IEnumerable<NtfsDirectory> ListDirectories(bool uniqueOnly = true)
@@ -72,7 +77,7 @@ namespace NTFSLib.IO
 
                 foreach (IndexEntry entry in _indexRoot.Entries)
                 {
-                    if (entries.ContainsKey((uint) entry.FileRefence.FileId))
+                    if (entries.ContainsKey((uint)entry.FileRefence.FileId))
                     {
                         // Is this better?
                         int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[(uint)entry.FileRefence.FileId].FileName.FilenameNamespace);

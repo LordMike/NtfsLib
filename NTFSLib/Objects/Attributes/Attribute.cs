@@ -17,6 +17,16 @@ namespace NTFSLib.Objects.Attributes
         public AttributeFlags Flags { get; set; }
         public ushort Id { get; set; }
 
+        public string AttributeName
+        {
+            get
+            {
+                if (NonResidentHeader != null)
+                    return NonResidentHeader.AttributeName;
+                return ResidentHeader.AttributeName;
+            }
+        }
+
         public AttributeResidentHeader ResidentHeader { get; set; }
         public AttributeNonResidentHeader NonResidentHeader { get; set; }
 

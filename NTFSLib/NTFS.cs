@@ -381,7 +381,7 @@ namespace NTFSLib
             ParseAttributeLists(record);
 
             // Get all DATA attributes
-            List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => (s.NonResidentFlag == ResidentFlag.Resident && s.ResidentHeader.AttributeName == dataStream) || (s.NonResidentFlag == ResidentFlag.NonResident && s.NonResidentHeader.AttributeName == dataStream)).ToList();
+            List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
 
             Debug.Assert(dataAttribs.Count >= 1);
 
