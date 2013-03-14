@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace TestApplication
     {
         static void Main(string[] args)
         {
-            const char driveLetter = 'C';
+            const char driveLetter = 'E';
             RawDisk disk = new RawDisk(driveLetter);
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
@@ -28,61 +29,61 @@ namespace TestApplication
 
             Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
 
-            // Read sparse file
-            {
-                // C:\Users\Michael\Desktop\TestSparse.txt
-                var x1 = ntfs.GetRootDirectory();
-                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
-                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
-                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
-                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse.txt");
+            //// Read sparse file
+            //{
+            //    // C:\Users\Michael\Desktop\TestSparse.txt
+            //    var x1 = ntfs.GetRootDirectory();
+            //    var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+            //    var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+            //    var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+            //    var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse.txt");
 
-                Console.WriteLine(x5.MFTRecord.FileReference);
+            //    Console.WriteLine(x5.MFTRecord.FileReference);
 
-                var strm = x5.OpenRead();
-                byte[] data = new byte[strm.Length];
-                strm.Read(data, 0, data.Length);
-            }
+            //    var strm = x5.OpenRead();
+            //    byte[] data = new byte[strm.Length];
+            //    strm.Read(data, 0, data.Length);
+            //}
 
-            // Read compressed file
-            {
-                // C:\Users\Michael\Desktop\TestDoc.txt
-                var x1 = ntfs.GetRootDirectory();
-                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
-                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
-                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
-                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
+            //// Read compressed file
+            //{
+            //    // C:\Users\Michael\Desktop\TestDoc.txt
+            //    var x1 = ntfs.GetRootDirectory();
+            //    var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+            //    var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+            //    var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+            //    var x5 = x4.ListFiles(false).Single(s => s.Name == "TestDoc.txt");
 
-                var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
+            //    var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
 
-                Console.WriteLine(x5.MFTRecord.FileReference);
+            //    Console.WriteLine(x5.MFTRecord.FileReference);
 
-                var strm = x5.OpenRead();
-                byte[] data = new byte[strm.Length - 100];
-                strm.Position = 100;
-                strm.Read(data, 0, data.Length);
-            }
+            //    var strm = x5.OpenRead();
+            //    byte[] data = new byte[strm.Length - 100];
+            //    strm.Position = 100;
+            //    strm.Read(data, 0, data.Length);
+            //}
 
-            // Read compressed-sparse file
-            {
-                // C:\Users\Michael\Desktop\TestSparse - copy.txt
-                var x1 = ntfs.GetRootDirectory();
-                var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
-                var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
-                var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
-                var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse - Copy.txt");
+            //// Read compressed-sparse file
+            //{
+            //    // C:\Users\Michael\Desktop\TestSparse - copy.txt
+            //    var x1 = ntfs.GetRootDirectory();
+            //    var x2 = x1.ListDirectories(false).Single(s => s.Name == "Users");
+            //    var x3 = x2.ListDirectories(false).Single(s => s.Name == "Michael");
+            //    var x4 = x3.ListDirectories(false).Single(s => s.Name == "Desktop");
+            //    var x5 = x4.ListFiles(false).Single(s => s.Name == "TestSparse - Copy.txt");
 
-                var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
+            //    var xx = x5.MFTRecord.Attributes.OfType<AttributeData>().Single();
 
-                Console.WriteLine(x5.MFTRecord.FileReference);
+            //    Console.WriteLine(x5.MFTRecord.FileReference);
 
-                var strm = x5.OpenRead();
-                byte[] data = new byte[strm.Length - 100];
-                strm.Position = 100;
-                strm.Read(data, 0, data.Length);
-            }
+            //    var strm = x5.OpenRead();
+            //    byte[] data = new byte[strm.Length - 100];
+            //    strm.Position = 100;
+            //    strm.Read(data, 0, data.Length);
+            //}
 
-            // Iterate dirs
+            //// Iterate dirs
             //NtfsDirectory dir = ntfs.GetRootDirectory();
             //Queue<NtfsDirectory> dirs = new Queue<NtfsDirectory>();
             //dirs.Enqueue(dir);
@@ -91,7 +92,9 @@ namespace TestApplication
             //{
             //    NtfsDirectory currDir = dirs.Dequeue();
 
-            //    Console.WriteLine(ntfs.BuildFileName(currDir.MFTRecord,driveLetter));
+            //    int files = currDir.ListFiles().Count();
+
+            //    Console.WriteLine(files + ": " + ntfs.BuildFileName(currDir.MFTRecord, driveLetter));
 
             //    foreach (NtfsDirectory subDir in currDir.ListDirectories())
             //    {
@@ -101,7 +104,6 @@ namespace TestApplication
             //        dirs.Enqueue(subDir);
             //    }
             //}
-
 
             // Parse $AttrDef
             AttrDef attrDef = AttrDef.ParseFile(ntfs.OpenFileRecord(ntfs.FileAttrDef));
@@ -139,10 +141,16 @@ namespace TestApplication
 
             //Console.WriteLine(x2.Attributes.OfType<AttributeIndexRoot>().First().Entries.Length);
 
+            // Filerecord bitmap
+            ntfs.ParseNonResidentAttribute(ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single());
+            BitArray bitmapData = ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single().Bitfield;
 
             // Read fragmented file
             for (uint i = 0; i < ntfs.FileRecordCount; i++)
             {
+                if (!bitmapData[(int) i])
+                    continue;
+
                 FileRecord record = ntfs.ReadMFTRecord(i);
 
                 if (!record.Flags.HasFlag(FileEntryFlags.FileInUse))
@@ -169,11 +177,10 @@ namespace TestApplication
                 if (attributeData.SelectMany(s => s.DataFragments).Count() <= 1)
                     continue;
 
-                if (attributeData.First().NonResidentHeader.ContentSize > 256000000)
+                if (attributeData.First().NonResidentHeader.ContentSize > 768000000)
                     continue;
 
-                if (attributeData.First().NonResidentHeader.CompressionUnitSize != 0)
-                    continue;
+                continue;
 
                 // Hash files
                 try
@@ -222,18 +229,32 @@ namespace TestApplication
                     //byte[] xx = data.Skip(record.OffsetToFirstAttribute + record.Attributes[0].TotalLength + record.Attributes[1].TotalLength + record.Attributes[2].NonResidentHeader.ListOffset).Take(record.Attributes[2].TotalLength - record.Attributes[2].NonResidentHeader.ListOffset).ToArray();
                     //string xxx = "0x" + BitConverter.ToString(xx).Replace("-", ", 0x");
 
-                    for (int j = 0; j < dataRaw.Length; j++)
+                    bool equal = true;
+                    if (dataRaw.Length != dataDiskIo.Length)
                     {
-                        if (dataRaw[j] != dataDiskIo[j])
+                        Console.WriteLine("Diff at length {0:N0} and {1:N0}!", dataRaw.Length, dataDiskIo.Length);
+                        equal = false;
+                    }
+                    else
+                    {
+                        for (int j = 0; j < dataRaw.Length; j++)
                         {
-                            Console.WriteLine("Diff at byte {0:N0} of {1:N0}!", j, dataRaw.Length);
+                            if (dataRaw[j] != dataDiskIo[j])
+                            {
+                                Console.WriteLine("Diff at byte {0:N0} of {1:N0}!", j, dataRaw.Length);
+                                equal = false;
+                                break;
+                            }
                         }
                     }
 
-                    if (hashNtfs.SequenceEqual(hashDiskIo))
+                    if (equal)
                         Console.WriteLine("Success!");
                     else
+                    {
                         Console.WriteLine("Error!");
+                        Console.ReadLine();
+                    }
                 }
                 catch (Exception)
                 {
