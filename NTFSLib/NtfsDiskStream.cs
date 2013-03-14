@@ -99,11 +99,32 @@ namespace NTFSLib
                 {
                     // Read and decompress
                     byte[] compressedData = new byte[fragmentLength];
-                    _diskStream.Position = diskOffset + fragmentOffset;
+                    _diskStream.Position = diskOffset;
                     _diskStream.Read(compressedData, 0, compressedData.Length);
 
-                    // TODO: Indexing into the middle of compressed streams doesn't work
-                    actualRead = _compressor.Decompress(compressedData, 0, compressedData.Length, buffer, offset);
+                    int decompressedLength = (int)((fragment.Clusters + fragment.CompressedClusters) * _ntfs.BytesPrCluster);
+                    int toRead = (int)Math.Min(decompressedLength - fragmentOffset, Math.Min(_length - _position, count));
+
+                    Debug.Assert(decompressedLength == 16 * _ntfs.BytesPrCluster);
+
+                    if (fragmentOffset == 0 && toRead == decompressedLength)
+                    {
+                        // Decompress directly (we're in the middle of a file and reading a full 16 clusters out)
+                        actualRead = _compressor.Decompress(compressedData, 0, compressedData.Length, buffer, offset);
+                    }
+                    else
+                    {
+                        // Decompress temporarily
+                        byte[] tmp = new byte[_compressor.BlockSize * 16];
+                        int decompressed = _compressor.Decompress(compressedData, 0, compressedData.Length, tmp, 0);
+
+                        toRead = Math.Min(toRead, decompressed);
+
+                        // Copy wanted data
+                        Array.Copy(tmp, 0, buffer, offset, toRead);
+
+                        actualRead = toRead;
+                    }
                 }
                 else if (fragment.IsSparseFragment)
                 {
