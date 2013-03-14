@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFSLib.Helpers", "NTFSLib.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0C7ABA76-F530-423B-9825-70294D3939E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFS.Tests", "NTFS.Tests\NTFS.Tests.csproj", "{40296FDC-FFE9-49CC-BDCE-A9D3D776B2C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFSLib.Tests", "NTFSLib.Tests\NTFSLib.Tests.csproj", "{40296FDC-FFE9-49CC-BDCE-A9D3D776B2C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

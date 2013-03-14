@@ -6,8 +6,8 @@
     <ProjectGuid>{40296FDC-FFE9-49CC-BDCE-A9D3D776B2C1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NTFS.Tests</RootNamespace>
-    <AssemblyName>NTFS.Tests</AssemblyName>
+    <RootNamespace>NTFSLib.Tests</RootNamespace>
+    <AssemblyName>NTFSLib.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -57,11 +57,20 @@
     <Compile Include="Helpers\DataFragmentHelpers.cs" />
     <Compile Include="DataFragmentTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NTFSLib.Helpers\NTFSLib.Helpers.csproj">
+      <Project>{6e05ab3a-a3e3-4bcc-a121-8a9f332cdb96}</Project>
+      <Name>NTFSLib.Helpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NTFSLib\NTFSLib.csproj">
       <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
       <Name>NTFSLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RawDiskLib\RawDiskLib\RawDiskLib.csproj">
+      <Project>{5E9AA56E-6428-4DED-97A2-C51C51A6EA89}</Project>
+      <Name>RawDiskLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

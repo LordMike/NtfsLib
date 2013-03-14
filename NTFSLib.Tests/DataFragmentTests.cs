@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NTFS.Tests.Helpers;
 using NTFSLib.Objects;
+using NTFSLib.Tests.Helpers;
 
-namespace NTFS.Tests
+namespace NTFSLib.Tests
 {
     /// <summary>
     /// Implements tests from http://inform.pucp.edu.pe/~inf232/Ntfs/ntfs_doc_v0.5/concepts/data_runs.html
