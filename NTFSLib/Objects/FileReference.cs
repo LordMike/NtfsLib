@@ -49,5 +49,10 @@ namespace NTFSLib.Objects
 
             return Equals(other);
         }
+
+        public override int GetHashCode()
+        {
+            return RawId.GetHashCode();
+        }
     }
 }

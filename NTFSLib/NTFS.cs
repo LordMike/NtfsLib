@@ -293,17 +293,12 @@ namespace NTFSLib
             return record;
         }
 
-        public string BuildFileName(FileRecord record)
-        {
-            return BuildFileName(record, null);
-        }
-
         public string BuildFileName(FileRecord record, char rootDriveLetter)
         {
             return BuildFileName(record, rootDriveLetter + ":");
         }
 
-        public string BuildFileName(FileRecord record, string rootName)
+        public string BuildFileName(FileRecord record, string rootName = null)
         {
             // Get filename (and prefer the non-8dot3 variant)
             AttributeFileName fileName = NtfsUtils.GetPreferredDisplayName(record);
@@ -429,7 +424,7 @@ namespace NTFSLib
             Stream diskStream = Provider.CreateDiskStream();
 
             ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
-            ushort compressionClusterCount = (ushort)Math.Pow(2, compressionUnitSize);
+            ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
 
             return new NtfsDiskStream(this, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }

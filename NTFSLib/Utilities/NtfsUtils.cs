@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using NTFSLib.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Specials;
@@ -23,35 +24,12 @@ namespace NTFSLib.Utilities
 
         public static byte[] ReadFragments(NTFS ntfs, DataFragment[] fragments)
         {
-            long vcn = fragments[0].StartingVCN;
-            for (int i = 0; i < fragments.Length; i++)
-            {
-                Debug.Assert(fragments[i].StartingVCN == vcn);
-                vcn += fragments[i].Clusters;// +_fragments[i].CompressedClusters;     // Todo: Handle compressed clusters
-            }
-
             int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfs.BytesPrCluster);
-
             byte[] data = new byte[totalLength];
 
-            // Get all chunks
-            foreach (DataFragment fragment in fragments)
+            using (NtfsDiskStream stream = new NtfsDiskStream(ntfs, ntfs.Provider.CreateDiskStream(), fragments, 0, totalLength))
             {
-                // Calculate this fragments location on Disk
-                long offset = fragment.LCN * ntfs.BytesPrCluster;
-                int length = (int)fragment.Clusters * (int)ntfs.BytesPrCluster;
-
-                if (!ntfs.Provider.CanReadBytes((ulong)offset, length))
-                    throw new InvalidOperationException();
-
-                // Get the data
-                byte[] fragmentData = new byte[length];
-                ntfs.Provider.ReadBytes(fragmentData, 0, (ulong)offset, length);
-
-                // Calculate this fragments location in the target array - take the startingVCN of the entire fragmentset into consideration
-                int destinationOffset = (int)(fragment.StartingVCN - fragments[0].StartingVCN) * (int)ntfs.BytesPrCluster;
-
-                Array.Copy(fragmentData, 0, data, destinationOffset, Math.Min(fragmentData.Length, data.Length - destinationOffset));
+                stream.Read(data, 0, data.Length);
             }
 
             // Return the data

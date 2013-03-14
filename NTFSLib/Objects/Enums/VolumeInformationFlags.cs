@@ -1,5 +1,6 @@
 ﻿namespace NTFSLib.Objects.Enums
 {
+    // ReSharper disable InconsistentNaming
     public enum VolumeInformationFlags : ushort
     {
         Dirty = 0x0001,
@@ -10,4 +11,5 @@
         RepairObjectIds = 0x0020,
         ModifiedByChkdsk = 0x8000
     }
+    // ReSharper restore InconsistentNaming
 }

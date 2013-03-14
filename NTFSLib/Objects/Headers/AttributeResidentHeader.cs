@@ -16,6 +16,8 @@ namespace NTFSLib.Objects.Headers
 
             res.ContentLength = BitConverter.ToUInt32(data, offset);
             res.ContentOffset = BitConverter.ToUInt16(data, offset + 4);
+
+            // TODO: Move this away from this header and into the parent
             if (parent.NameLength == 0)
                 res.AttributeName = string.Empty;
             else

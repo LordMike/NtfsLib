@@ -31,6 +31,7 @@ namespace NTFSLib.Objects.Headers
             if (res.CompressionUnitSize != 0)
                 res.ContentSizeCompressed = BitConverter.ToUInt64(data, offset + 48);
 
+            // TODO: Move this away from this header and into the parent
             if (parent.NameLength == 0)
                 res.AttributeName = string.Empty;
             else

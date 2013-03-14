@@ -33,15 +33,27 @@ namespace NTFSLib.IO
             _length = length;
             _position = 0;
 
-            _compressor = new LZNT1();
-            _compressor.BlockSize = (int)ntfs.BytesPrCluster;
+            if (compressionClusterCount != 0)
+            {
+                _compressor = new LZNT1();
+                _compressor.BlockSize = (int)ntfs.BytesPrCluster;
+            }
 
             long vcn = 0;
+            bool hasCompression = false;
             for (int i = 0; i < _fragments.Length; i++)
             {
+                if (_fragments[i].IsCompressed)
+                    hasCompression = true;
+
                 Debug.Assert(_fragments[i].StartingVCN == vcn);
                 vcn += _fragments[i].Clusters + _fragments[i].CompressedClusters;
             }
+
+            if (_compressionClusterCount == 0)
+                Debug.Assert(!hasCompression);
+            else
+                Debug.Assert(hasCompression);
         }
 
         public override void Flush()
@@ -222,6 +234,20 @@ namespace NTFSLib.IO
 
                 _position = value;
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _diskStream.Dispose();
+
+            base.Dispose(disposing);
+        }
+
+        public override void Close()
+        {
+            _diskStream.Close();
+
+            base.Close();
         }
     }
 }
