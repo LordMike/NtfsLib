@@ -51,7 +51,6 @@ namespace NTFSLib
         public FileRecord FileBitmap { get; private set; }
         public FileRecord FileBoot { get; private set; }
         public FileRecord FileBadClus { get; private set; }
-        //public FileRecord FileQuota { get; private set; }
         public FileRecord FileSecure { get; private set; }
         public FileRecord FileUpCase { get; private set; }
         public FileRecord FileExtend { get; private set; }
@@ -212,7 +211,7 @@ namespace NTFSLib
                 attr.ParseAttributeNonResidentBody(this);
         }
 
-        public void ParseAttributeLists(FileRecord record)
+        internal void ParseAttributeLists(FileRecord record)
         {
             while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
             {

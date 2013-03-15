@@ -158,7 +158,6 @@ namespace TestApplication
                 if (!record.Flags.HasFlag(FileEntryFlags.FileInUse))
                     continue;
 
-                ntfs.ParseAttributeLists(record);
                 ntfs.ParseNonResidentAttributes(record);
 
                 Console.WriteLine("Read {0:N0} of {1:N0}", i, ntfs.FileRecordCount);
