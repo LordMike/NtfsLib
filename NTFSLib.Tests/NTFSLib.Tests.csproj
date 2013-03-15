@@ -56,8 +56,11 @@
     <Compile Include="DataFragmentActual.cs" />
     <Compile Include="Helpers\DataFragmentHelpers.cs" />
     <Compile Include="DataFragmentTests.cs" />
+    <Compile Include="Helpers\NTFSHelpers.cs" />
+    <Compile Include="Helpers\Win32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="NTFSFileTests.cs" />
+    <Compile Include="Helpers\StreamUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NTFSLib.Helpers\NTFSLib.Helpers.csproj">
@@ -67,6 +70,10 @@
     <ProjectReference Include="..\NTFSLib\NTFSLib.csproj">
       <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
       <Name>NTFSLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RawDiskLib\DeviceIOControlLib\DeviceIOControlLib\DeviceIOControlLib.csproj">
+      <Project>{303f50c6-4ebb-45c5-bfea-f5f39caf0410}</Project>
+      <Name>DeviceIOControlLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\RawDiskLib\RawDiskLib\RawDiskLib.csproj">
       <Project>{5E9AA56E-6428-4DED-97A2-C51C51A6EA89}</Project>

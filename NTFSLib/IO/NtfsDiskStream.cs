@@ -52,8 +52,6 @@ namespace NTFSLib.IO
 
             if (_compressionClusterCount == 0)
                 Debug.Assert(!hasCompression);
-            else
-                Debug.Assert(hasCompression);
         }
 
         public override void Flush()
