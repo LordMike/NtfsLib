@@ -266,7 +266,7 @@ namespace NTFSLib
             return ReadMFTRecord((uint)file);
         }
 
-        public FileRecord ReadMFTRecord(uint number)
+        public FileRecord ReadMFTRecord(uint number, bool parseAttributeLists = true)
         {
             FileRecord record;
             if (number <= FileRecords.Length && FileRecords[number] != null && (record = FileRecords[number].Target as FileRecord) != null)
@@ -289,6 +289,9 @@ namespace NTFSLib
 
                 BytesPrFileRecord = record.SizeOfFileRecordAllocated;
             }
+
+            if (parseAttributeLists)
+                ParseAttributeLists(record);
 
             return record;
         }

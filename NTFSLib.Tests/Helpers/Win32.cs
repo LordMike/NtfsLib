@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using DeviceIOControlLib;
@@ -21,7 +22,12 @@ namespace NTFSLib.Tests.Helpers
 
         public static SafeFileHandle CreateFile(string fileName)
         {
-            return CreateFile(fileName, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+            SafeFileHandle handle = CreateFile(fileName, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.OpenOrCreate, FileAttributes.Normal, IntPtr.Zero);
+
+            if (handle.IsInvalid)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return handle;
         }
 
         public static DeviceIOControlWrapper GetFileWrapper(string fileName)

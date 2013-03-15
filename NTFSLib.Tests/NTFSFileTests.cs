@@ -23,39 +23,33 @@ namespace NTFSLib.Tests
         {
             byte[] randomData = new byte[65 * 4096];
             _random.NextBytes(randomData);
-
-            FileInfo tmpFile = new FileInfo(Path.GetTempFileName());
-            try
+            
+            using (TempFile tmpFile = new TempFile())
             {
                 // Create a file
-                File.WriteAllBytes(tmpFile.FullName, randomData);
+                File.WriteAllBytes(tmpFile.File.FullName, randomData);
 
                 // Discover it via the NTFS lib
-                char driveLetter = tmpFile.FullName[0];
+                char driveLetter = tmpFile.File.FullName[0];
                 RawDisk disk = new RawDisk(driveLetter);
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
                 NTFS ntfs = new NTFS(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.DirectoryName);
-                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.Name);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);
 
                 // Read it
-                using (Stream actualStream = File.OpenRead(tmpFile.FullName))
+                using (Stream actualStream = File.OpenRead(tmpFile.File.FullName))
                 using (Stream ntfsStream = ntfsFile.OpenRead())
                 {
                     bool equal = StreamUtils.CompareStreams(actualStream, ntfsStream);
 
                     Assert.IsTrue(equal);
                 }
-            }
-            finally
-            {
-                if (tmpFile.Exists)
-                    tmpFile.Delete();
             }
         }
 
@@ -67,14 +61,13 @@ namespace NTFSLib.Tests
 
             // Clear the 16 * 4096 -> 32 * 4096 range
             Array.Clear(randomData, 16 * 4096, 16 * 4096);
-
-            FileInfo tmpFile = new FileInfo(Path.GetTempFileName());
-            try
+            
+            using (TempFile tmpFile = new TempFile())
             {
                 // Create a file
-                File.WriteAllBytes(tmpFile.FullName, randomData);
+                File.WriteAllBytes(tmpFile.File.FullName, randomData);
 
-                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.FullName))
+                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
                 {
                     wrapper.FileSystemSetSparseFile(true);
                     wrapper.FileSystemSetZeroData(16 * 4096, 16 * 4096);
@@ -86,24 +79,24 @@ namespace NTFSLib.Tests
                 }
 
                 // Discover it via the NTFS lib
-                char driveLetter = tmpFile.FullName[0];
+                char driveLetter = tmpFile.File.FullName[0];
                 RawDisk disk = new RawDisk(driveLetter);
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
                 NTFS ntfs = new NTFS(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.DirectoryName);
-                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.Name);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);
-                Assert.IsTrue(tmpFile.Attributes.HasFlag(FileAttributes.SparseFile));
+                Assert.IsTrue(tmpFile.File.Attributes.HasFlag(FileAttributes.SparseFile));
                 AttributeData attributeData = ntfsFile.MFTRecord.Attributes.OfType<AttributeData>().Single();
                 Assert.IsTrue(attributeData.DataFragments.Length > 1);
                 Assert.IsTrue(attributeData.DataFragments.Any(s => s.IsSparseFragment));
 
                 // Read it
-                using (Stream actualStream = File.OpenRead(tmpFile.FullName))
+                using (Stream actualStream = File.OpenRead(tmpFile.File.FullName))
                 using (Stream ntfsStream = ntfsFile.OpenRead())
                 {
                     bool equal = StreamUtils.CompareStreams(actualStream, ntfsStream);
@@ -111,22 +104,16 @@ namespace NTFSLib.Tests
                     Assert.IsTrue(equal);
                 }
             }
-            finally
-            {
-                if (tmpFile.Exists)
-                    tmpFile.Delete();
-            }
         }
 
         [TestMethod]
         public void CompressedFile()
         {
-            FileInfo tmpFile = new FileInfo(Path.GetTempFileName());
-            try
+            using (TempFile tmpFile = new TempFile())
             {
                 // Create a file
                 // Write file data
-                using (FileStream fs = File.OpenWrite(tmpFile.FullName))
+                using (FileStream fs = File.OpenWrite(tmpFile.File.FullName))
                 {
                     byte[] data = Encoding.ASCII.GetBytes("The white bunny jumps over the brown dog in a carparking lot");
 
@@ -136,40 +123,35 @@ namespace NTFSLib.Tests
                     }
                 }
 
-                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.FullName))
+                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
                 {
                     wrapper.FileSystemSetCompression(COMPRESSION_FORMAT.LZNT1);
                 }
 
                 // Discover it via the NTFS lib
-                char driveLetter = tmpFile.FullName[0];
+                char driveLetter = tmpFile.File.FullName[0];
                 RawDisk disk = new RawDisk(driveLetter);
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
                 NTFS ntfs = new NTFS(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.DirectoryName);
-                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.Name);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);
-                Assert.IsTrue(tmpFile.Attributes.HasFlag(FileAttributes.Compressed));
+                Assert.IsTrue(tmpFile.File.Attributes.HasFlag(FileAttributes.Compressed));
                 AttributeData attributeData = ntfsFile.MFTRecord.Attributes.OfType<AttributeData>().Single();
                 Assert.IsTrue(attributeData.DataFragments.Any(s => s.IsCompressed));
 
                 // Read it
-                using (Stream actualStream = File.OpenRead(tmpFile.FullName))
+                using (Stream actualStream = File.OpenRead(tmpFile.File.FullName))
                 using (Stream ntfsStream = ntfsFile.OpenRead())
                 {
                     bool equal = StreamUtils.CompareStreams(actualStream, ntfsStream);
 
                     Assert.IsTrue(equal);
                 }
-            }
-            finally
-            {
-                if (tmpFile.Exists)
-                    tmpFile.Delete();
             }
         }
     }
