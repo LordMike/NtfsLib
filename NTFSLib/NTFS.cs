@@ -432,6 +432,20 @@ namespace NTFSLib
             return new NtfsDiskStream(this, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
 
+        public string[] ListDatastreams(FileRecord record)
+        {
+            AttributeData[] datas = record.Attributes.OfType<AttributeData>().ToArray();
+
+            string[] names = new string[datas.Length];
+
+            for (int i = 0; i < datas.Length; i++)
+            {
+                names[i] = datas[i].AttributeName;
+            }
+
+            return names;
+        }
+
         public NtfsDirectory GetRootDirectory()
         {
             return (NtfsDirectory)NtfsFileEntry.CreateEntry(this, (uint)SpecialMFTFiles.RootDir);
