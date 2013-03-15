@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
@@ -14,6 +16,24 @@ namespace NTFSLib.IO
         public FileRecord MFTRecord { get; private set; }
 
         internal AttributeFileName FileName;
+        private AttributeStandardInformation _standardInformation;
+
+        public DateTime TimeCreation
+        {
+            get { return _standardInformation == null ? DateTime.MinValue : _standardInformation.TimeCreated; }
+        }
+        public DateTime TimeModified
+        {
+            get { return _standardInformation == null ? DateTime.MinValue : _standardInformation.TimeModified; }
+        }
+        public DateTime TimeAccessed
+        {
+            get { return _standardInformation == null ? DateTime.MinValue : _standardInformation.TimeAccessed; }
+        }
+        public DateTime TimeMftModified
+        {
+            get { return _standardInformation == null ? DateTime.MinValue : _standardInformation.TimeMftModified; }
+        }
 
         public string Name
         {
@@ -34,6 +54,13 @@ namespace NTFSLib.IO
             MFTRecord = record;
 
             FileName = fileName;
+
+            Init();
+        }
+
+        private void Init()
+        {
+            _standardInformation = MFTRecord.Attributes.OfType<AttributeStandardInformation>().SingleOrDefault();
         }
 
         internal NtfsFileEntry CreateEntry(uint fileId, AttributeFileName fileName = null)
@@ -78,7 +105,30 @@ namespace NTFSLib.IO
 
         public Stream OpenRead(string dataStream = "")
         {
-            return Ntfs.OpenFileRecord(MFTRecord, dataStream);
+            if (Ntfs.Provider.MftFileOnly)
+                throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
+
+            // Get all DATA attributes
+            List<AttributeData> dataAttribs = MFTRecord.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
+
+            Debug.Assert(dataAttribs.Count >= 1);
+            if (dataAttribs.Count > 1)
+                Debugger.Break();
+
+            if (dataAttribs.Count == 1 && dataAttribs[0].NonResidentFlag == ResidentFlag.Resident)
+            {
+                return new MemoryStream(dataAttribs[0].DataBytes);
+            }
+
+            Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
+
+            DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
+            Stream diskStream = Ntfs.Provider.CreateDiskStream();
+
+            ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
+            ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
+
+            return new NtfsDiskStream(Ntfs, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
     }
 }
