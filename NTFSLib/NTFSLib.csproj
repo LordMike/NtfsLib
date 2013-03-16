@@ -43,6 +43,7 @@
     <Compile Include="IO\NtfsFileCache.cs" />
     <Compile Include="IO\NtfsFileEntry.cs" />
     <Compile Include="NTFS\INTFSInfo.cs" />
+    <Compile Include="NTFS\NTFSParser.cs" />
     <Compile Include="Objects\Enums\FileNamespace.cs" />
     <Compile Include="Objects\Specials\FileNamespaceComparer.cs" />
     <Compile Include="Objects\Specials\Files\AttrDef.cs" />

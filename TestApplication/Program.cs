@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -37,6 +38,24 @@ namespace TestApplication
 
             const char driveLetter = 'E';
             RawDisk disk = new RawDisk(driveLetter);
+
+            Stopwatch swa = new Stopwatch();
+            int xi = 0;
+            using (RawDiskStream stream = disk.CreateDiskStream())
+            {
+                NTFSParser parser = new NTFSParser(stream);
+
+                swa.Start();
+                foreach (FileRecord fileRecord in parser.GetRecords(true))
+                {
+                    //Console.WriteLine(fileRecord.FileReference + " - " + fileRecord.Flags.HasFlag(FileEntryFlags.FileInUse));
+                    xi++;
+                }
+            }
+            swa.Stop();
+
+            Console.WriteLine("{0:N0} records", xi);
+            Console.WriteLine("{0:N2} ms", swa.ElapsedMilliseconds);
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
