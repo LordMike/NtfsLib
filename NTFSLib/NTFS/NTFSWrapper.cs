@@ -14,7 +14,7 @@ using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.NTFS
 {
-    public class NTFSWrapper
+    public class NTFSWrapper : INTFSInfo
     {
         internal IDiskProvider Provider { get; private set; }
         private WeakReference[] FileRecords { get; set; }
@@ -36,6 +36,16 @@ namespace NTFSLib.NTFS
         public uint BytesPrCluster
         {
             get { return (uint)(Boot.BytesPrSector * Boot.SectorsPrCluster); }
+        }
+        public uint BytesPrSector { get { return Boot.BytesPrSector; } }
+
+        public bool OwnsDiskStream
+        {
+            get { return true; }
+        }
+        public Stream GetDiskStream()
+        {
+            return Provider.CreateDiskStream();
         }
 
         public uint BytesPrFileRecord { get; private set; }
@@ -428,7 +438,7 @@ namespace NTFSLib.NTFS
             ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
             ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
 
-            return new NtfsDiskStream(diskStream, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(diskStream, true, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
 
         public string[] ListDatastreams(FileRecord record)

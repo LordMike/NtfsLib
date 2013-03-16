@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using NTFSLib.IO;
 using NTFSLib.NTFS;
@@ -23,12 +24,13 @@ namespace NTFSLib.Utilities
             return DateTime.FromFileTimeUtc(fileTime);
         }
 
-        public static byte[] ReadFragments(NTFSWrapper ntfsWrapper, DataFragment[] fragments)
+        public static byte[] ReadFragments(INTFSInfo ntfsInfo, DataFragment[] fragments)
         {
-            int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfsWrapper.BytesPrCluster);
+            int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfsInfo.BytesPrCluster);
             byte[] data = new byte[totalLength];
 
-            using (NtfsDiskStream stream = new NtfsDiskStream(ntfsWrapper.Provider.CreateDiskStream(), fragments, ntfsWrapper.BytesPrCluster, 0, totalLength))
+            Stream diskStream = ntfsInfo.GetDiskStream();
+            using (NtfsDiskStream stream = new NtfsDiskStream(diskStream, ntfsInfo.OwnsDiskStream, fragments, ntfsInfo.BytesPrCluster, 0, totalLength))
             {
                 stream.Read(data, 0, data.Length);
             }

@@ -31,12 +31,12 @@ namespace NTFSLib.Objects.Attributes
             Bitfield = new BitArray(tmpData);
         }
 
-        internal override void ParseAttributeNonResidentBody(NTFSWrapper ntfsWrapper)
+        internal override void ParseAttributeNonResidentBody(INTFSInfo ntfsInfo)
         {
-            base.ParseAttributeNonResidentBody(ntfsWrapper);
+            base.ParseAttributeNonResidentBody(ntfsInfo);
 
             // Get all chunks
-            byte[] data = NtfsUtils.ReadFragments(ntfsWrapper, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfsInfo, NonResidentHeader.Fragments);
             
             // Parse
             Bitfield = new BitArray(data);

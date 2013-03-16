@@ -19,9 +19,9 @@ namespace NTFSLib.Objects.Attributes
             }
         }
 
-        internal override void ParseAttributeNonResidentBody(NTFSWrapper ntfsWrapper)
+        internal override void ParseAttributeNonResidentBody(INTFSInfo ntfsInfo)
         {
-            byte[] data = NtfsUtils.ReadFragments(ntfsWrapper, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfsInfo, NonResidentHeader.Fragments);
 
             List<IndexAllocationChunk> indexes = new List<IndexAllocationChunk>();
             List<IndexEntry> entries = new List<IndexEntry>();
@@ -31,12 +31,12 @@ namespace NTFSLib.Objects.Attributes
             {
                 for (int j = 0; j < NonResidentHeader.Fragments[i].Clusters; j++)
                 {
-                    int offset = (int)((NonResidentHeader.Fragments[i].StartingVCN - NonResidentHeader.Fragments[0].StartingVCN) * ntfsWrapper.BytesPrCluster + j * ntfsWrapper.BytesPrCluster);
+                    int offset = (int)((NonResidentHeader.Fragments[i].StartingVCN - NonResidentHeader.Fragments[0].StartingVCN) * ntfsInfo.BytesPrCluster + j * ntfsInfo.BytesPrCluster);
                     
                     if (!IndexAllocationChunk.IsIndexAllocationChunk(data, offset))
                         continue;
 
-                    IndexAllocationChunk index = IndexAllocationChunk.ParseBody(ntfsWrapper, data, offset);
+                    IndexAllocationChunk index = IndexAllocationChunk.ParseBody(ntfsInfo, data, offset);
 
                     indexes.Add(index);
                     entries.AddRange(index.Entries);

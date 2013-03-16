@@ -12,6 +12,7 @@ namespace NTFSLib.IO
         private LZNT1 _compressor;
 
         private readonly Stream _diskStream;
+        private readonly bool _ownsStream;
         private readonly uint _bytesPrCluster;
         private readonly ushort _compressionClusterCount;
         private readonly DataFragment[] _fragments;
@@ -23,9 +24,10 @@ namespace NTFSLib.IO
             get { return _position >= _length; }
         }
 
-        internal NtfsDiskStream(Stream diskStream, DataFragment[] fragments, uint bytesPrCluster, ushort compressionClusterCount, long length)
+        internal NtfsDiskStream(Stream diskStream, bool ownsStream, DataFragment[] fragments, uint bytesPrCluster, ushort compressionClusterCount, long length)
         {
             _diskStream = diskStream;
+            _ownsStream = ownsStream;
             _bytesPrCluster = bytesPrCluster;
             _compressionClusterCount = compressionClusterCount;
             _fragments = fragments.OrderBy(s => s.StartingVCN).ToArray();
@@ -236,16 +238,18 @@ namespace NTFSLib.IO
 
         protected override void Dispose(bool disposing)
         {
-            _diskStream.Dispose();
-
             base.Dispose(disposing);
+
+            if (_ownsStream)
+                _diskStream.Dispose();
         }
 
         public override void Close()
         {
-            _diskStream.Close();
-
             base.Close();
+
+            if (_ownsStream)
+                _diskStream.Close();
         }
     }
 }
