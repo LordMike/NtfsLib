@@ -162,13 +162,13 @@ namespace TestApplication
             BitArray bitmapData = ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single().Bitfield;
 
             // Read fragmented file
-            for (uint i = 0; i < 40; i++)
+            for (uint i = 0; i < ntfs.FileRecordCount; i++)
             {
                 if (!ntfs.InRawDiskCache(i))
                     ntfs.PrepRawDiskCache(i);
 
-                //if (!bitmapData[(int)i])
-                //    continue;
+                if (!bitmapData[(int)i])
+                    continue;
 
                 FileRecord record = ntfs.ReadMFTRecord(i);
 
@@ -255,8 +255,12 @@ namespace TestApplication
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write(" {0}", attributeData.NonResidentFlag);
 
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write(" ({0:N0} bytes)", attributeData.NonResidentFlag == ResidentFlag.NonResident ? attributeData.NonResidentHeader.ContentSize : (ulong)attributeData.DataBytes.Length);
+
                         if (attributeData.NonResidentFlag == ResidentFlag.Resident)
                         {
+                            Console.ForegroundColor = ConsoleColor.Red;
                             Console.Write(" ('{0}')", Encoding.ASCII.GetString(attributeData.DataBytes, 0, Math.Min(attributeData.DataBytes.Length, 30)));
                         }
                         else
@@ -266,7 +270,7 @@ namespace TestApplication
 
                             foreach (DataFragment fragment in attributeData.DataFragments)
                             {
-                                Console.Write("    LCN: " + fragment.LCN + " (" + fragment.Clusters + " clusters) ");
+                                Console.Write("    LCN: {0:N0} ({1:N0} clusters) ", fragment.LCN, fragment.Clusters);
 
                                 if (fragment.IsCompressed)
                                 {
@@ -292,6 +296,22 @@ namespace TestApplication
                     Console.WriteLine();
                 }
 
+                List<DataFragment> frags = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == string.Empty && s.NonResidentFlag == ResidentFlag.NonResident).SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToList();
+                DataFragment.CompactFragmentList(frags);
+
+                if (frags.Count > 7)
+                {
+                    using (var sw = new StreamWriter(i + ".csv"))
+                    {
+                        foreach (var frag in frags)
+                        {
+                            sw.WriteLine("{0};{1};{2};{3}", frag.LCN, frag.Clusters, frag.IsSparseFragment, frag.IsCompressed);
+                        }
+                    }
+                    Console.ReadLine();
+                }
+
+                Console.ReadLine();
                 Console.WriteLine();
                 //HashFile(ntfs,record,driveLetter);
             }

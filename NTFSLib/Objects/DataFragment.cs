@@ -148,10 +148,9 @@ namespace NTFSLib.Objects
 
         public static void CompactCompressedFragments(List<DataFragment> fragments)
         {
-            for (int i = 0; i < fragments.Count; i++)
+            for (int i = 0; i < fragments.Count - 1; i++)
             {
-                if (fragments.Count > i + 1 &&
-                    fragments[i + 1].IsSparseFragment && 
+                if (fragments[i + 1].IsSparseFragment && 
                     (fragments[i].Clusters + fragments[i + 1].Clusters) % 16 == 0 &&
                     fragments[i + 1].Clusters < 16)
                 {
@@ -160,6 +159,24 @@ namespace NTFSLib.Objects
                     fragments.RemoveAt(i + 1);
 
                     i--;
+                }
+            }
+        }
+
+        public static void CompactFragmentList(List<DataFragment> fragments)
+        {
+            for (int j = 0; j < fragments.Count - 1; j++)
+            {
+                if (!fragments[j].IsCompressed && !fragments[j].IsSparseFragment &&
+                    !fragments[j + 1].IsCompressed && !fragments[j + 1].IsSparseFragment && 
+                    fragments[j].LCN + fragments[j].Clusters == fragments[j + 1].LCN)
+                {
+                    // Compact
+                    fragments[j].Clusters += fragments[j + 1].Clusters;
+
+                    fragments.RemoveAt(j + 1);
+
+                    j--;
                 }
             }
         }
