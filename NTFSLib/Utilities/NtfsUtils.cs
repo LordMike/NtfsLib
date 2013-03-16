@@ -28,7 +28,7 @@ namespace NTFSLib.Utilities
             int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfsWrapper.BytesPrCluster);
             byte[] data = new byte[totalLength];
 
-            using (NtfsDiskStream stream = new NtfsDiskStream(ntfsWrapper, ntfsWrapper.Provider.CreateDiskStream(), fragments, 0, totalLength))
+            using (NtfsDiskStream stream = new NtfsDiskStream(ntfsWrapper.Provider.CreateDiskStream(), fragments, ntfsWrapper.BytesPrCluster, 0, totalLength))
             {
                 stream.Read(data, 0, data.Length);
             }

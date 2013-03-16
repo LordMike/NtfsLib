@@ -428,7 +428,7 @@ namespace NTFSLib.NTFS
             ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
             ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
 
-            return new NtfsDiskStream(this, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(diskStream, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
 
         public string[] ListDatastreams(FileRecord record)

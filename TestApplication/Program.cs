@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using NTFSLib;
 using NTFSLib.Helpers;
 using NTFSLib.NTFS;
 using NTFSLib.Objects;
