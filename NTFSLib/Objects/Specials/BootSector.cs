@@ -19,8 +19,8 @@ namespace NTFSLib.Objects.Specials
         public ulong TotalSectors { get; set; }
         public ulong MFTCluster { get; set; }
         public ulong MFTMirrCluster { get; set; }
-        public uint MFTRecordSizeClusters { get; set; }
-        public uint MFTIndexSizeClusters { get; set; }
+        public uint MFTRecordSizeBytes { get; set; }
+        public uint MFTIndexSizeBytes { get; set; }
         public ulong SerialNumber { get; set; }
         public uint Checksum { get; set; }
         public byte[] BootstrapCode { get; set; }
@@ -48,13 +48,13 @@ namespace NTFSLib.Objects.Specials
             res.TotalSectors = BitConverter.ToUInt64(data, offset + 40);
             res.MFTCluster = BitConverter.ToUInt64(data, offset + 48);
             res.MFTMirrCluster = BitConverter.ToUInt64(data, offset + 56);
-            res.MFTRecordSizeClusters = BitConverter.ToUInt32(data, offset + 64);
-            res.MFTIndexSizeClusters = BitConverter.ToUInt32(data, offset + 68);
+            res.MFTRecordSizeBytes = BitConverter.ToUInt32(data, offset + 64);
+            res.MFTIndexSizeBytes = BitConverter.ToUInt32(data, offset + 68);
             res.SerialNumber = BitConverter.ToUInt64(data, offset + 72);
             res.Checksum = BitConverter.ToUInt32(data, offset + 80);
 
-            res.MFTRecordSizeClusters = InterpretClusterCount(res.MFTRecordSizeClusters);
-            res.MFTIndexSizeClusters = InterpretClusterCount(res.MFTRecordSizeClusters);
+            res.MFTRecordSizeBytes = InterpretClusterCount(res.MFTRecordSizeBytes);
+            res.MFTIndexSizeBytes = InterpretClusterCount(res.MFTRecordSizeBytes);
 
             res.BootstrapCode = new byte[426];
             Array.Copy(data, offset + 84, res.BootstrapCode, 0, 426);
