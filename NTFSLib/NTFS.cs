@@ -96,7 +96,7 @@ namespace NTFSLib
             MftStream = OpenFileRecord(FileMFT);
 
             // Get number of FileRecords 
-            FileRecordCount = (uint)(fileMftData.DataFragments.Sum(s => (float)s.Clusters) * (BytesPrCluster / BytesPrFileRecord));
+            FileRecordCount = (uint)((fileMftData.DataFragments.Sum(s => (float)s.Clusters)) * (BytesPrCluster * 1f / BytesPrFileRecord));
             FileRecords = new WeakReference[FileRecordCount];
 
             FileRecords[0] = new WeakReference(FileMFT);
