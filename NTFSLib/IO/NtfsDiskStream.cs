@@ -112,7 +112,7 @@ namespace NTFSLib.IO
                 {
                     // Read and decompress
                     byte[] compressedData = new byte[fragmentLength];
-                    _diskStream.Position = diskOffset;
+                    _diskStream.Seek(diskOffset, SeekOrigin.Begin);
                     _diskStream.Read(compressedData, 0, compressedData.Length);
 
                     int decompressedLength = (int)((fragment.Clusters + fragment.CompressedClusters) * _bytesPrCluster);
@@ -156,7 +156,7 @@ namespace NTFSLib.IO
                     int toRead = (int)Math.Min(fragmentLength - fragmentOffset, Math.Min(_length - _position, count));
 
                     // Read it
-                    _diskStream.Position = diskOffset + fragmentOffset;
+                    _diskStream.Seek(diskOffset + fragmentOffset, SeekOrigin.Begin);
                     actualRead = _diskStream.Read(buffer, offset, toRead);
                 }
 

@@ -135,7 +135,7 @@ namespace NTFSLib.NTFS
             Debug.WriteLine("Fetching {0:N0} bytes (record #{1:N0}) from disk into RawDiskCache", toRead, number);
 
             // Read
-            MftStream.Position = offset;
+            MftStream.Seek(offset, SeekOrigin.Begin);
             MftStream.Read(MftRawCache.Data, 0, toRead);
 
             // Set props
@@ -381,7 +381,7 @@ namespace NTFSLib.NTFS
             {
                 byte[] mftData = new byte[length];
 
-                MftStream.Position = offset;
+                MftStream.Seek(offset, SeekOrigin.Begin);
                 MftStream.Read(mftData, 0, length);
 
                 Debug.WriteLine("Read MFT Record {0} via. mft ntfsdiskstream; bytes {1}->{2} ({3} bytes)", number, offset, offset + (long)length, length);
