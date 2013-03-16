@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using NTFSLib;
 using NTFSLib.Helpers;
 using NTFSLib.Objects;
@@ -11,6 +12,7 @@ using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials.Files;
 using RawDiskLib;
+using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace TestApplication
 {
@@ -18,6 +20,21 @@ namespace TestApplication
     {
         static void Main(string[] args)
         {
+            //{
+            //    DirectoryInfo dir = new DirectoryInfo("E:\\testDir");
+
+            //    dir.Create();
+            //    for (int i = 1024000; i < 1024000 * 2; i++)
+            //    {
+            //        File.Create(Path.Combine(dir.FullName, i + ".txt"));
+            //        if (i % 10000 == 0)
+            //            Console.WriteLine(i);
+            //    }
+            //}
+
+            //Console.WriteLine("Done");
+            //Console.ReadLine();
+
             const char driveLetter = 'E';
             RawDisk disk = new RawDisk(driveLetter);
 
@@ -145,126 +162,226 @@ namespace TestApplication
             BitArray bitmapData = ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single().Bitfield;
 
             // Read fragmented file
-            for (uint i = 0; i < ntfs.FileRecordCount; i++)
+            for (uint i = 0; i < 40; i++)
             {
                 if (!ntfs.InRawDiskCache(i))
                     ntfs.PrepRawDiskCache(i);
 
-                if (!bitmapData[(int)i])
-                    continue;
+                //if (!bitmapData[(int)i])
+                //    continue;
 
                 FileRecord record = ntfs.ReadMFTRecord(i);
 
-                if (!record.Flags.HasFlag(FileEntryFlags.FileInUse))
-                    continue;
+                if (record.Flags.HasFlag(FileEntryFlags.FileInUse))
+                    ntfs.ParseNonResidentAttributes(record);
 
-                ntfs.ParseNonResidentAttributes(record);
+                Console.Write("Read {0:N0} of {1:N0} - ({2:N0} bytes {3:N0} allocated)", i, ntfs.FileRecordCount, record.SizeOfFileRecord, record.SizeOfFileRecordAllocated);
 
-                Console.WriteLine("Read {0:N0} of {1:N0}", i, ntfs.FileRecordCount);
-
-                if (record.BaseFile.RawId != 0)
-                    continue;
-
-                if (!record.Attributes.OfType<AttributeFileName>().Any())
-                    continue;
-
-                string path = ntfs.BuildFileName(record, driveLetter);
-
-                List<AttributeData> attributeData = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == string.Empty).ToList();
-
-                if (attributeData.Any(s => s.NonResidentFlag == ResidentFlag.Resident))
-                    continue;
-
-                if (attributeData.SelectMany(s => s.DataFragments).Count() <= 1)
-                    continue;
-
-                if (attributeData.First().NonResidentHeader.ContentSize > 768000000)
-                    continue;
-
-                continue;
-
-                // Hash files
-                try
+                if (record.Flags.HasFlag(FileEntryFlags.FileInUse))
                 {
-                    //string sss = "0x" + BitConverter.ToString(record.Attributes.OfType<AttributeData>().First().NonResidentHeader.xxxx).Replace("-", ", 0x");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.Write(" (InUse)");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    Console.Write(" (Not InUse)");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
 
-                    //var extents = record.Attributes.OfType<AttributeData>().First().NonResidentHeader.Fragments;
+                if (bitmapData[(int)i])
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.Write(" (Bitmap:InUse)");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    Console.Write(" (Bitmap:Not InUse)");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
 
-                    //string ss = "";
-                    //for (int kk = 0; kk < extents.Length; kk++)
-                    //{
-                    //    ss += string.Format("{0}: {1} -> {2} ({3} clusters); VCN: {4}\n", kk, extents[kk].LCN, extents[kk].LCN + extents[kk].Clusters, extents[kk].Clusters, extents[kk].StartingVCN);
-                    //    Console.WriteLine("{0}: {1} -> {2} ({3} clusters); VCN: {4}", kk, extents[kk].LCN, extents[kk].LCN + extents[kk].Clusters, extents[kk].Clusters, extents[kk].StartingVCN);
-                    //}
+                if (record.Flags.HasFlag(FileEntryFlags.Directory))
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(" (dir)");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
 
-                    // Hash the file
-                    Console.WriteLine("Hashing {0}!", path);
-                    MD5CryptoServiceProvider x = new MD5CryptoServiceProvider();
+                if (record.BaseFile.FileId != 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(" (base: {0})", record.BaseFile);
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
 
-                    byte[] hashDiskIo;
-                    byte[] dataDiskIo;
-                    using (Stream stream = File.OpenRead(path))
+                if (Enum.IsDefined(typeof(SpecialMFTFiles), record.FileReference.FileId))
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write(" ({0})", (SpecialMFTFiles)record.FileReference.FileId);
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+
+                Console.WriteLine();
+
+                foreach (Attribute attribute in record.Attributes.OrderBy(s => s.Id))
+                {
+                    string name = string.IsNullOrWhiteSpace(attribute.AttributeName) ? string.Empty : " '" + attribute.AttributeName + "'";
+
+                    Console.Write("  " + attribute.Id + " (" + attribute.Type);
+
+                    if (name != string.Empty)
                     {
-                        dataDiskIo = new byte[stream.Length];
-                        stream.Read(dataDiskIo, 0, dataDiskIo.Length);
-                        stream.Position = 0;
-
-                        hashDiskIo = x.ComputeHash(stream);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write(name);
+                        Console.ForegroundColor = ConsoleColor.Gray;
                     }
 
-                    byte[] hashNtfs;
-                    byte[] dataRaw;
-                    using (Stream stream = ntfs.OpenFileRecord(record))
-                    {
-                        dataRaw = new byte[stream.Length];
-                        stream.Read(dataRaw, 0, dataRaw.Length);
-                        stream.Position = 0;
+                    Console.Write(")");
 
-                        hashNtfs = x.ComputeHash(stream);
+                    AttributeFileName attributeFileName = attribute as AttributeFileName;
+                    if (attributeFileName != null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write(" '{0}'", attributeFileName.FileName);
+                        Console.ForegroundColor = ConsoleColor.Gray;
                     }
 
-                    //File.WriteAllBytes("a.bin", dataRaw);
-                    //File.WriteAllBytes("b.bin", dataDiskIo);
-
-                    //byte[] data = ntfs.ReadMFTRecordData(i);
-                    //byte[] xx = data.Skip(record.OffsetToFirstAttribute + record.Attributes[0].TotalLength + record.Attributes[1].TotalLength + record.Attributes[2].NonResidentHeader.ListOffset).Take(record.Attributes[2].TotalLength - record.Attributes[2].NonResidentHeader.ListOffset).ToArray();
-                    //string xxx = "0x" + BitConverter.ToString(xx).Replace("-", ", 0x");
-
-                    bool equal = true;
-                    if (dataRaw.Length != dataDiskIo.Length)
+                    AttributeData attributeData = attribute as AttributeData;
+                    if (attributeData != null)
                     {
-                        Console.WriteLine("Diff at length {0:N0} and {1:N0}!", dataRaw.Length, dataDiskIo.Length);
-                        equal = false;
-                    }
-                    else
-                    {
-                        for (int j = 0; j < dataRaw.Length; j++)
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write(" {0}", attributeData.NonResidentFlag);
+
+                        if (attributeData.NonResidentFlag == ResidentFlag.Resident)
                         {
-                            if (dataRaw[j] != dataDiskIo[j])
+                            Console.Write(" ('{0}')", Encoding.ASCII.GetString(attributeData.DataBytes, 0, Math.Min(attributeData.DataBytes.Length, 30)));
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.WriteLine();
+
+                            foreach (DataFragment fragment in attributeData.DataFragments)
                             {
-                                Console.WriteLine("Diff at byte {0:N0} of {1:N0}!", j, dataRaw.Length);
-                                equal = false;
-                                break;
+                                Console.Write("    LCN: " + fragment.LCN + " (" + fragment.Clusters + " clusters) ");
+
+                                if (fragment.IsCompressed)
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+                                    Console.Write(" (Compressed)");
+                                    Console.ForegroundColor = ConsoleColor.Cyan;
+                                }
+
+                                if (fragment.IsSparseFragment)
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+                                    Console.Write(" (Sparse)");
+                                    Console.ForegroundColor = ConsoleColor.Cyan;
+                                }
+
+                                Console.WriteLine();
                             }
                         }
+
+                        Console.ForegroundColor = ConsoleColor.Gray;
                     }
 
-                    if (equal)
-                        Console.WriteLine("Success!");
-                    else
-                    {
-                        Console.WriteLine("Error!");
-                        Console.ReadLine();
-                    }
+                    Console.WriteLine();
                 }
-                catch (Exception)
-                {
-                    Console.WriteLine("Failed");
-                }
+
+                Console.WriteLine();
+                //HashFile(ntfs,record,driveLetter);
             }
 
             Console.WriteLine("Done.");
             Console.ReadLine();
+        }
+
+        private static void HashFile(NTFS ntfs, FileRecord record, char driveLetter)
+        {
+            // Hash files
+            try
+            {
+                //string sss = "0x" + BitConverter.ToString(record.Attributes.OfType<AttributeData>().First().NonResidentHeader.xxxx).Replace("-", ", 0x");
+
+                //var extents = record.Attributes.OfType<AttributeData>().First().NonResidentHeader.Fragments;
+
+                //string ss = "";
+                //for (int kk = 0; kk < extents.Length; kk++)
+                //{
+                //    ss += string.Format("{0}: {1} -> {2} ({3} clusters); VCN: {4}\n", kk, extents[kk].LCN, extents[kk].LCN + extents[kk].Clusters, extents[kk].Clusters, extents[kk].StartingVCN);
+                //    Console.WriteLine("{0}: {1} -> {2} ({3} clusters); VCN: {4}", kk, extents[kk].LCN, extents[kk].LCN + extents[kk].Clusters, extents[kk].Clusters, extents[kk].StartingVCN);
+                //}
+
+                // Hash the file
+                string path = ntfs.BuildFileName(record, driveLetter);
+
+                Console.WriteLine("Hashing {0}!", path);
+                MD5CryptoServiceProvider x = new MD5CryptoServiceProvider();
+
+                byte[] hashDiskIo;
+                byte[] dataDiskIo;
+                using (Stream stream = File.OpenRead(path))
+                {
+                    dataDiskIo = new byte[stream.Length];
+                    stream.Read(dataDiskIo, 0, dataDiskIo.Length);
+                    stream.Position = 0;
+
+                    hashDiskIo = x.ComputeHash(stream);
+                }
+
+                byte[] hashNtfs;
+                byte[] dataRaw;
+                using (Stream stream = ntfs.OpenFileRecord(record))
+                {
+                    dataRaw = new byte[stream.Length];
+                    stream.Read(dataRaw, 0, dataRaw.Length);
+                    stream.Position = 0;
+
+                    hashNtfs = x.ComputeHash(stream);
+                }
+
+                //File.WriteAllBytes("a.bin", dataRaw);
+                //File.WriteAllBytes("b.bin", dataDiskIo);
+
+                //byte[] data = ntfs.ReadMFTRecordData(i);
+                //byte[] xx = data.Skip(record.OffsetToFirstAttribute + record.Attributes[0].TotalLength + record.Attributes[1].TotalLength + record.Attributes[2].NonResidentHeader.ListOffset).Take(record.Attributes[2].TotalLength - record.Attributes[2].NonResidentHeader.ListOffset).ToArray();
+                //string xxx = "0x" + BitConverter.ToString(xx).Replace("-", ", 0x");
+
+                bool equal = true;
+                if (dataRaw.Length != dataDiskIo.Length)
+                {
+                    Console.WriteLine("Diff at length {0:N0} and {1:N0}!", dataRaw.Length, dataDiskIo.Length);
+                    equal = false;
+                }
+                else
+                {
+                    for (int j = 0; j < dataRaw.Length; j++)
+                    {
+                        if (dataRaw[j] != dataDiskIo[j])
+                        {
+                            Console.WriteLine("Diff at byte {0:N0} of {1:N0}!", j, dataRaw.Length);
+                            equal = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (equal)
+                    Console.WriteLine("Success!");
+                else
+                {
+                    Console.WriteLine("Error!");
+                    Console.ReadLine();
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Failed");
+            }
         }
     }
 }
