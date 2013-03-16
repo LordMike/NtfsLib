@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using NTFSLib;
 using NTFSLib.Helpers;
+using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -40,10 +41,10 @@ namespace TestApplication
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-            NTFS ntfs = new NTFS(provider, 524288);
-            ntfs.InitializeCommon();
+            NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 524288);
+            ntfsWrapper.InitializeCommon();
 
-            Console.WriteLine("Read NTFS. Version: " + ntfs.NTFSVersion);
+            Console.WriteLine("Read NTFS. Version: " + ntfsWrapper.NTFSVersion);
 
             //// Read sparse file
             //{
@@ -122,7 +123,7 @@ namespace TestApplication
             //}
 
             // Parse $AttrDef
-            AttrDef attrDef = AttrDef.ParseFile(ntfs.OpenFileRecord(ntfs.FileAttrDef));
+            AttrDef attrDef = AttrDef.ParseFile(ntfsWrapper.OpenFileRecord(ntfsWrapper.FileAttrDef));
 
             // Parse $Secure
             //var xy = ntfs.OpenFileRecord(ntfs.FileSecure, "$SDS");
@@ -158,24 +159,24 @@ namespace TestApplication
             //Console.WriteLine(x2.Attributes.OfType<AttributeIndexRoot>().First().Entries.Length);
 
             // Filerecord bitmap
-            ntfs.ParseNonResidentAttribute(ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single());
-            BitArray bitmapData = ntfs.FileMFT.Attributes.OfType<AttributeBitmap>().Single().Bitfield;
+            ntfsWrapper.ParseNonResidentAttribute(ntfsWrapper.FileMFT.Attributes.OfType<AttributeBitmap>().Single());
+            BitArray bitmapData = ntfsWrapper.FileMFT.Attributes.OfType<AttributeBitmap>().Single().Bitfield;
 
             // Read fragmented file
-            for (uint i = 0; i < ntfs.FileRecordCount; i++)
+            for (uint i = 0; i < ntfsWrapper.FileRecordCount; i++)
             {
-                if (!ntfs.InRawDiskCache(i))
-                    ntfs.PrepRawDiskCache(i);
+                if (!ntfsWrapper.InRawDiskCache(i))
+                    ntfsWrapper.PrepRawDiskCache(i);
 
                 if (!bitmapData[(int)i])
                     continue;
 
-                FileRecord record = ntfs.ReadMFTRecord(i);
+                FileRecord record = ntfsWrapper.ReadMFTRecord(i);
 
                 if (record.Flags.HasFlag(FileEntryFlags.FileInUse))
-                    ntfs.ParseNonResidentAttributes(record);
+                    ntfsWrapper.ParseNonResidentAttributes(record);
 
-                Console.Write("Read {0:N0} of {1:N0} - ({2:N0} bytes {3:N0} allocated)", i, ntfs.FileRecordCount, record.SizeOfFileRecord, record.SizeOfFileRecordAllocated);
+                Console.Write("Read {0:N0} of {1:N0} - ({2:N0} bytes {3:N0} allocated)", i, ntfsWrapper.FileRecordCount, record.SizeOfFileRecord, record.SizeOfFileRecordAllocated);
 
                 if (record.Flags.HasFlag(FileEntryFlags.FileInUse))
                 {
@@ -320,7 +321,7 @@ namespace TestApplication
             Console.ReadLine();
         }
 
-        private static void HashFile(NTFS ntfs, FileRecord record, char driveLetter)
+        private static void HashFile(NTFSWrapper ntfsWrapper, FileRecord record, char driveLetter)
         {
             // Hash files
             try
@@ -337,7 +338,7 @@ namespace TestApplication
                 //}
 
                 // Hash the file
-                string path = ntfs.BuildFileName(record, driveLetter);
+                string path = ntfsWrapper.BuildFileName(record, driveLetter);
 
                 Console.WriteLine("Hashing {0}!", path);
                 MD5CryptoServiceProvider x = new MD5CryptoServiceProvider();
@@ -355,7 +356,7 @@ namespace TestApplication
 
                 byte[] hashNtfs;
                 byte[] dataRaw;
-                using (Stream stream = ntfs.OpenFileRecord(record))
+                using (Stream stream = ntfsWrapper.OpenFileRecord(record))
                 {
                     dataRaw = new byte[stream.Length];
                     stream.Read(dataRaw, 0, dataRaw.Length);

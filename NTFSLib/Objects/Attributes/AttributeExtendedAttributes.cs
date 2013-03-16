@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using NTFSLib.NTFS;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Utilities;
 
@@ -17,12 +18,12 @@ namespace NTFSLib.Objects.Attributes
             }
         }
 
-        internal override void ParseAttributeNonResidentBody(NTFS ntfs)
+        internal override void ParseAttributeNonResidentBody(NTFSWrapper ntfsWrapper)
         {
-            base.ParseAttributeNonResidentBody(ntfs);
+            base.ParseAttributeNonResidentBody(ntfsWrapper);
 
             // Get all chunks
-            byte[] data = NtfsUtils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfsWrapper, NonResidentHeader.Fragments);
 
             // Parse
             Debug.Assert(data.Length >= 8);

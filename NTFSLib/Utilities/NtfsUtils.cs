@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using NTFSLib.IO;
+using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Specials;
@@ -22,12 +23,12 @@ namespace NTFSLib.Utilities
             return DateTime.FromFileTimeUtc(fileTime);
         }
 
-        public static byte[] ReadFragments(NTFS ntfs, DataFragment[] fragments)
+        public static byte[] ReadFragments(NTFSWrapper ntfsWrapper, DataFragment[] fragments)
         {
-            int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfs.BytesPrCluster);
+            int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfsWrapper.BytesPrCluster);
             byte[] data = new byte[totalLength];
 
-            using (NtfsDiskStream stream = new NtfsDiskStream(ntfs, ntfs.Provider.CreateDiskStream(), fragments, 0, totalLength))
+            using (NtfsDiskStream stream = new NtfsDiskStream(ntfsWrapper, ntfsWrapper.Provider.CreateDiskStream(), fragments, 0, totalLength))
             {
                 stream.Read(data, 0, data.Length);
             }

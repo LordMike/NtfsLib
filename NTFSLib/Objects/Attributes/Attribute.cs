@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using NTFSLib.NTFS;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
 
@@ -68,11 +69,11 @@ namespace NTFSLib.Objects.Attributes
             Debug.Assert(0 <= offset && offset <= data.Length);
         }
 
-        internal virtual void ParseAttributeNonResidentBody(NTFS ntfs)
+        internal virtual void ParseAttributeNonResidentBody(NTFSWrapper ntfsWrapper)
         {
             Debug.Assert(NonResidentFlag == ResidentFlag.NonResident);
             Debug.Assert(AllowedResidentStates.HasFlag(AttributeResidentAllow.NonResident));
-            Debug.Assert(ntfs != null);
+            Debug.Assert(ntfsWrapper != null);
         }
 
         public static Attribute ParseSingleAttribute(byte[] data, int maxLength, int offset = 0)

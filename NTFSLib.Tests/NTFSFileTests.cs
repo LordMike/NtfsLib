@@ -5,6 +5,7 @@ using DeviceIOControlLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFSLib.Helpers;
 using NTFSLib.IO;
+using NTFSLib.NTFS;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Tests.Helpers;
 using RawDiskLib;
@@ -35,9 +36,9 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpFile.File.DirectoryName);
                 NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);
@@ -84,9 +85,9 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpFile.File.DirectoryName);
                 NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);
@@ -134,9 +135,9 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpFile.File.DirectoryName);
                 NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 Assert.IsNotNull(ntfsFile);

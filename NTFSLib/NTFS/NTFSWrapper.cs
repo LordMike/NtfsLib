@@ -12,9 +12,9 @@ using NTFSLib.Provider;
 using NTFSLib.Utilities;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
-namespace NTFSLib
+namespace NTFSLib.NTFS
 {
-    public class NTFS
+    public class NTFSWrapper
     {
         internal IDiskProvider Provider { get; private set; }
         private WeakReference[] FileRecords { get; set; }
@@ -24,7 +24,7 @@ namespace NTFSLib
         private readonly int _rawDiskCacheSizeRecords;
         private RawDiskCache MftRawCache { get; set; }
 
-        public NTFS(IDiskProvider provider, int rawDiskCacheSizeRecords)
+        public NTFSWrapper(IDiskProvider provider, int rawDiskCacheSizeRecords)
         {
             _rawDiskCacheSizeRecords = rawDiskCacheSizeRecords;
             Provider = provider;

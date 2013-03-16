@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using NTFSLib.NTFS;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Utilities;
 
@@ -31,7 +32,7 @@ namespace NTFSLib.Objects.Specials
             return signature == "INDX";
         }
 
-        public static IndexAllocationChunk ParseBody(NTFS ntfs, byte[] data, int offset)
+        public static IndexAllocationChunk ParseBody(NTFSWrapper ntfsWrapper, byte[] data, int offset)
         {
             Debug.Assert(data.Length >= 36);
 
@@ -60,7 +61,7 @@ namespace NTFSLib.Objects.Specials
             Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNData.Length);
 
             // Patch USN Data
-            NtfsUtils.ApplyUSNPatch(data, offset, ((int)res.SizeOfIndexAllocated + 24) / ntfs.Boot.BytesPrSector, ntfs.Boot.BytesPrSector, res.USNNumber, res.USNData);
+            NtfsUtils.ApplyUSNPatch(data, offset, ((int)res.SizeOfIndexAllocated + 24) / ntfsWrapper.Boot.BytesPrSector, ntfsWrapper.Boot.BytesPrSector, res.USNNumber, res.USNData);
 
             Debug.Assert(offset + res.SizeOfIndexTotal <= data.Length);
 

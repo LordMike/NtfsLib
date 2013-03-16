@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFSLib.IO;
+using NTFSLib.NTFS;
 
 namespace NTFSLib.Tests.Helpers
 {
@@ -18,13 +19,13 @@ namespace NTFSLib.Tests.Helpers
             return currFile;
         }
 
-        public static NtfsDirectory OpenDir(NTFS ntfs, string path)
+        public static NtfsDirectory OpenDir(NTFSWrapper ntfsWrapper, string path)
         {
             Assert.IsTrue(Path.IsPathRooted(path));
 
             string[] dirs = path.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
-            NtfsDirectory currDir = ntfs.GetRootDirectory();
+            NtfsDirectory currDir = ntfsWrapper.GetRootDirectory();
 
             foreach (string dir in dirs.Skip(1))        // Skip root (C:\)
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -12,7 +13,7 @@ namespace NTFSLib.IO
 {
     public abstract class NtfsFileEntry
     {
-        protected NTFS Ntfs;
+        protected NTFSWrapper NTFSWrapper;
         public FileRecord MFTRecord { get; private set; }
 
         internal AttributeFileName FileName;
@@ -48,9 +49,9 @@ namespace NTFSLib.IO
             }
         }
 
-        protected NtfsFileEntry(NTFS ntfs, FileRecord record, AttributeFileName fileName)
+        protected NtfsFileEntry(NTFSWrapper ntfsWrapper, FileRecord record, AttributeFileName fileName)
         {
-            Ntfs = ntfs;
+            NTFSWrapper = ntfsWrapper;
             MFTRecord = record;
 
             FileName = fileName;
@@ -65,19 +66,19 @@ namespace NTFSLib.IO
 
         internal NtfsFileEntry CreateEntry(uint fileId, AttributeFileName fileName = null)
         {
-            return CreateEntry(Ntfs, fileId, fileName);
+            return CreateEntry(NTFSWrapper, fileId, fileName);
         }
 
-        internal static NtfsFileEntry CreateEntry(NTFS ntfs, uint fileId, AttributeFileName fileName = null)
+        internal static NtfsFileEntry CreateEntry(NTFSWrapper ntfsWrapper, uint fileId, AttributeFileName fileName = null)
         {
             if (fileName == null)
             {
                 // Dig up a preferred name
-                FileRecord tmpRecord = ntfs.ReadMFTRecord(fileId);
+                FileRecord tmpRecord = ntfsWrapper.ReadMFTRecord(fileId);
                 fileName = NtfsUtils.GetPreferredDisplayName(tmpRecord);
             }
 
-            NtfsFileEntry entry = ntfs.FileCache.Get(fileId, fileName.FileName.GetHashCode());
+            NtfsFileEntry entry = ntfsWrapper.FileCache.Get(fileId, fileName.FileName.GetHashCode());
 
             if (entry != null)
             {
@@ -86,14 +87,14 @@ namespace NTFSLib.IO
             }
 
             // Create it
-            FileRecord record = ntfs.ReadMFTRecord(fileId);
+            FileRecord record = ntfsWrapper.ReadMFTRecord(fileId);
 
             if (record.Flags.HasFlag(FileEntryFlags.Directory))
-                entry = new NtfsDirectory(ntfs, record, fileName);
+                entry = new NtfsDirectory(ntfsWrapper, record, fileName);
             else
-                entry = new NtfsFile(ntfs, record, fileName);
+                entry = new NtfsFile(ntfsWrapper, record, fileName);
 
-            ntfs.FileCache.Set(fileId, fileName.Id, entry);
+            ntfsWrapper.FileCache.Set(fileId, fileName.Id, entry);
 
             return entry;
         }
@@ -105,7 +106,7 @@ namespace NTFSLib.IO
 
         public Stream OpenRead(string dataStream = "")
         {
-            if (Ntfs.Provider.MftFileOnly)
+            if (NTFSWrapper.Provider.MftFileOnly)
                 throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
 
             // Get all DATA attributes
@@ -123,12 +124,12 @@ namespace NTFSLib.IO
             Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
 
             DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
-            Stream diskStream = Ntfs.Provider.CreateDiskStream();
+            Stream diskStream = NTFSWrapper.Provider.CreateDiskStream();
 
             ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
             ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
 
-            return new NtfsDiskStream(Ntfs, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+            return new NtfsDiskStream(NTFSWrapper, diskStream, fragments, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
     }
 }

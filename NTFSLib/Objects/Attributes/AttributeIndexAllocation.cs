@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using NTFSLib.NTFS;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
 using NTFSLib.Utilities;
@@ -18,9 +19,9 @@ namespace NTFSLib.Objects.Attributes
             }
         }
 
-        internal override void ParseAttributeNonResidentBody(NTFS ntfs)
+        internal override void ParseAttributeNonResidentBody(NTFSWrapper ntfsWrapper)
         {
-            byte[] data = NtfsUtils.ReadFragments(ntfs, NonResidentHeader.Fragments);
+            byte[] data = NtfsUtils.ReadFragments(ntfsWrapper, NonResidentHeader.Fragments);
 
             List<IndexAllocationChunk> indexes = new List<IndexAllocationChunk>();
             List<IndexEntry> entries = new List<IndexEntry>();
@@ -30,12 +31,12 @@ namespace NTFSLib.Objects.Attributes
             {
                 for (int j = 0; j < NonResidentHeader.Fragments[i].Clusters; j++)
                 {
-                    int offset = (int)((NonResidentHeader.Fragments[i].StartingVCN - NonResidentHeader.Fragments[0].StartingVCN) * ntfs.BytesPrCluster + j * ntfs.BytesPrCluster);
+                    int offset = (int)((NonResidentHeader.Fragments[i].StartingVCN - NonResidentHeader.Fragments[0].StartingVCN) * ntfsWrapper.BytesPrCluster + j * ntfsWrapper.BytesPrCluster);
                     
                     if (!IndexAllocationChunk.IsIndexAllocationChunk(data, offset))
                         continue;
 
-                    IndexAllocationChunk index = IndexAllocationChunk.ParseBody(ntfs, data, offset);
+                    IndexAllocationChunk index = IndexAllocationChunk.ParseBody(ntfsWrapper, data, offset);
 
                     indexes.Add(index);
                     entries.AddRange(index.Entries);

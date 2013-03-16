@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32.SafeHandles;
 using NTFSLib.Helpers;
 using NTFSLib.IO;
+using NTFSLib.NTFS;
 using NTFSLib.Tests.Helpers;
 using RawDiskLib;
 using System.Linq;
@@ -44,9 +45,9 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpDir.Directory.FullName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpDir.Directory.FullName);
 
                 // Enumerate files
                 List<NtfsFile> ntfsFiles = ntfsDir.ListFiles().ToList();
@@ -102,13 +103,13 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpFile.File.DirectoryName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpFile.File.DirectoryName);
                 NtfsFile ntfsFile = NTFSHelpers.OpenFile(ntfsDir, tmpFile.File.Name);
 
                 // Check streams
-                string[] streams = ntfs.ListDatastreams(ntfsFile.MFTRecord);
+                string[] streams = ntfsWrapper.ListDatastreams(ntfsFile.MFTRecord);
 
                 Assert.AreEqual(11, streams.Length);
                 Assert.AreEqual(1, streams.Count(s => s == string.Empty));
@@ -120,7 +121,7 @@ namespace NTFSLib.Tests
 
                 // Check data
                 using (Stream memStream = new MemoryStream(data[10]))
-                using (Stream fileStream = ntfs.OpenFileRecord(ntfsFile.MFTRecord))
+                using (Stream fileStream = ntfsWrapper.OpenFileRecord(ntfsFile.MFTRecord))
                 {
                     StreamUtils.CompareStreams(memStream, fileStream);
                 }
@@ -128,7 +129,7 @@ namespace NTFSLib.Tests
                 for (int i = 0; i < 10; i++)
                 {
                     using (Stream memStream = new MemoryStream(data[i]))
-                    using (Stream fileStream = ntfs.OpenFileRecord(ntfsFile.MFTRecord, "alternate" + i))
+                    using (Stream fileStream = ntfsWrapper.OpenFileRecord(ntfsFile.MFTRecord, "alternate" + i))
                     {
                         StreamUtils.CompareStreams(memStream, fileStream);
                     }
@@ -166,12 +167,12 @@ namespace NTFSLib.Tests
 
                 NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
-                NTFS ntfs = new NTFS(provider, 0);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, 0);
 
-                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfs, tmpDir.Directory.FullName);
+                NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, tmpDir.Directory.FullName);
 
                 // Check streams
-                string[] streams = ntfs.ListDatastreams(ntfsDir.MFTRecord);
+                string[] streams = ntfsWrapper.ListDatastreams(ntfsDir.MFTRecord);
 
                 Assert.AreEqual(10, streams.Length);
 
@@ -184,7 +185,7 @@ namespace NTFSLib.Tests
                 for (int i = 0; i < 10; i++)
                 {
                     using (Stream memStream = new MemoryStream(data[i]))
-                    using (Stream fileStream = ntfs.OpenFileRecord(ntfsDir.MFTRecord, "alternate" + i))
+                    using (Stream fileStream = ntfsWrapper.OpenFileRecord(ntfsDir.MFTRecord, "alternate" + i))
                     {
                         StreamUtils.CompareStreams(memStream, fileStream);
                     }

@@ -92,7 +92,7 @@
     <Compile Include="Objects\Enums\ResidentFlag.cs" />
     <Compile Include="Objects\Enums\VolumeInformationFlags.cs" />
     <Compile Include="Provider\IDiskProvider.cs" />
-    <Compile Include="NTFS.cs" />
+    <Compile Include="NTFS\NTFSWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\NtfsDiskStream.cs" />
     <Compile Include="RawDiskCache.cs" />

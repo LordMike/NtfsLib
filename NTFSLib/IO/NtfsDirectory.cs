@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
@@ -15,8 +16,8 @@ namespace NTFSLib.IO
         private AttributeIndexRoot _indexRoot;
         private AttributeIndexAllocation[] _indexes;
 
-        internal NtfsDirectory(NTFS ntfs, FileRecord record, AttributeFileName fileName)
-            : base(ntfs, record, fileName)
+        internal NtfsDirectory(NTFSWrapper ntfsWrapper, FileRecord record, AttributeFileName fileName)
+            : base(ntfsWrapper, record, fileName)
         {
             Debug.Assert(record.Flags.HasFlag(FileEntryFlags.Directory));
 
@@ -41,7 +42,7 @@ namespace NTFSLib.IO
             }
 
             if (parseLists)
-                Ntfs.ParseAttributeLists(MFTRecord);
+                NTFSWrapper.ParseAttributeLists(MFTRecord);
 
             // Get root
             _indexRoot = MFTRecord.Attributes.OfType<AttributeIndexRoot>().Single(s => s.AttributeName == DirlistAttribName);
@@ -51,7 +52,7 @@ namespace NTFSLib.IO
 
             foreach (AttributeIndexAllocation index in _indexes)
             {
-                Ntfs.ParseNonResidentAttribute(index);
+                NTFSWrapper.ParseNonResidentAttribute(index);
             }
 
             // Get bitmap of allocations
