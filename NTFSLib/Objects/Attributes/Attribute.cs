@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
 
@@ -17,15 +18,7 @@ namespace NTFSLib.Objects.Attributes
         public AttributeFlags Flags { get; set; }
         public ushort Id { get; set; }
 
-        public string AttributeName
-        {
-            get
-            {
-                if (NonResidentHeader != null)
-                    return NonResidentHeader.AttributeName;
-                return ResidentHeader.AttributeName;
-            }
-        }
+        public string AttributeName { get; set; }
 
         public AttributeResidentHeader ResidentHeader { get; set; }
         public AttributeNonResidentHeader NonResidentHeader { get; set; }
@@ -58,6 +51,12 @@ namespace NTFSLib.Objects.Attributes
             OffsetToName = BitConverter.ToUInt16(data, offset + 10);
             Flags = (AttributeFlags)BitConverter.ToUInt16(data, offset + 12);
             Id = BitConverter.ToUInt16(data, offset + 14);
+
+            if (NameLength == 0)
+                AttributeName = string.Empty;
+            else
+                AttributeName = Encoding.Unicode.GetString(data, offset + OffsetToName, NameLength * 2);
+
         }
 
         internal virtual void ParseAttributeResidentBody(byte[] data, int maxLength, int offset)

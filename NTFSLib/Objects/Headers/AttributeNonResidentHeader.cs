@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.Objects.Headers
@@ -14,7 +13,6 @@ namespace NTFSLib.Objects.Headers
         public ulong ContentSize { get; set; }
         public ulong ContentSizeInitialized { get; set; }
         public ulong ContentSizeCompressed { get; set; }
-        public string AttributeName { get; set; }
 
         public static AttributeNonResidentHeader ParseHeader(Attribute parent, byte[] data, int offset = 0)
         {
@@ -30,12 +28,6 @@ namespace NTFSLib.Objects.Headers
 
             if (res.CompressionUnitSize != 0)
                 res.ContentSizeCompressed = BitConverter.ToUInt64(data, offset + 48);
-
-            // TODO: Move this away from this header and into the parent
-            if (parent.NameLength == 0)
-                res.AttributeName = string.Empty;
-            else
-                res.AttributeName = Encoding.Unicode.GetString(data, offset + parent.OffsetToName - 16, parent.NameLength * 2);
 
             return res;
         }

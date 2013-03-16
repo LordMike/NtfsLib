@@ -41,7 +41,6 @@ namespace NTFSLib.Objects
 
                 // Fake the resident header
                 res.ChildFileName.ResidentHeader = new AttributeResidentHeader();
-                res.ChildFileName.ResidentHeader.AttributeName = string.Empty;
                 res.ChildFileName.ResidentHeader.ContentLength = res.StreamSize;
                 res.ChildFileName.ResidentHeader.ContentOffset = 0;
             }
