@@ -29,11 +29,15 @@ namespace NTFSLib.Objects.Attributes
 
         public static AttributeType GetType(byte[] data, int offset)
         {
+            Debug.Assert(data.Length - offset >= 4);
+
             return (AttributeType)BitConverter.ToUInt32(data, offset);
         }
 
-        public static uint GetLength(byte[] data, int offset)
+        public static ushort GetTotalLength(byte[] data, int offset)
         {
+            Debug.Assert(data.Length - offset + 4 >= 2);
+
             return BitConverter.ToUInt16(data, offset + 4);
         }
 

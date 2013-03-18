@@ -85,10 +85,11 @@ namespace NTFSLib.Objects
             int attribOffset = offset;
             for (int attribId = 0; ; attribId++)
             {
-                if (Attribute.GetType(data, attribOffset) == AttributeType.EndOfAttributes)
+                AttributeType attributeType = Attribute.GetType(data, attribOffset);
+                if (attributeType == AttributeType.EndOfAttributes)
                     break;
 
-                uint length = Attribute.GetLength(data, attribOffset);
+                uint length = Attribute.GetTotalLength(data, attribOffset);
 
                 Debug.Assert(attribOffset + length <= maxLength);
 

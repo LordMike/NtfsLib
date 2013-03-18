@@ -45,17 +45,23 @@ namespace TestApplication
             {
                 NTFSParser parser = new NTFSParser(stream);
 
+                parser.InitiateRecordBitarray();
+
+                Console.WriteLine("Begun for " + parser.FileRecordCount + " records");
                 swa.Start();
                 foreach (FileRecord fileRecord in parser.GetRecords(true))
                 {
                     //Console.WriteLine(fileRecord.FileReference + " - " + fileRecord.Flags.HasFlag(FileEntryFlags.FileInUse));
                     xi++;
+                    if(xi % 50000 == 0)
+                        Console.WriteLine(xi);
                 }
             }
             swa.Stop();
 
             Console.WriteLine("{0:N0} records", xi);
             Console.WriteLine("{0:N2} ms", swa.ElapsedMilliseconds);
+            Console.ReadLine();
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 

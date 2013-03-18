@@ -66,7 +66,7 @@ namespace NTFSLib.NTFS
         {
             // Read first FileRecord
             _buffer = new byte[BytesPrFileRecord];
-            _diskStream.Seek((long) (_boot.MFTCluster*BytesPrCluster), SeekOrigin.Begin);
+            _diskStream.Seek((long)(_boot.MFTCluster * BytesPrCluster), SeekOrigin.Begin);
             _diskStream.Read(_buffer, 0, _buffer.Length);
 
             // Parse
@@ -89,8 +89,11 @@ namespace NTFSLib.NTFS
             CurrentMftRecordNumber = 0;
             FileRecordCount = (uint)(_mftStream.Length / BytesPrFileRecord);
         }
-        private void InitiateRecordBitarray()
+        public void InitiateRecordBitarray()
         {
+            if (_usedRecords != null)
+                return;
+
             // Read $MFT Bitmap
             AttributeBitmap bitmapAttrib = _mftRecord.Attributes.OfType<AttributeBitmap>().Single();
 
@@ -142,17 +145,16 @@ namespace NTFSLib.NTFS
 
             while (true)
             {
-                if (skipUnused && !_usedRecords[(int) CurrentMftRecordNumber])
+                if (skipUnused && !_usedRecords[(int)CurrentMftRecordNumber])
                 {
                     // Skip to the next used record
-                    for (int i = (int) CurrentMftRecordNumber+1; i < _usedRecords.Length; i++)
+                    for (int i = (int)CurrentMftRecordNumber + 1; i < FileRecordCount; i++)
                     {
+                        CurrentMftRecordNumber = (uint)i;
+
                         if (_usedRecords[i])
-                        {
                             // Use this
-                            CurrentMftRecordNumber = (uint) i;
                             break;
-                        }
                     }
                 }
 
