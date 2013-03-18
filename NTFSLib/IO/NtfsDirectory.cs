@@ -99,7 +99,7 @@ namespace NTFSLib.IO
                     {
                         foreach (IndexEntry entry in index.Entries)
                         {
-                            if (entries.ContainsKey((uint)entry.FileRefence.FileId))
+                            if (entries.ContainsKey(entry.FileRefence.FileId))
                             {
                                 // Is this better?
                                 int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, entries[entry.FileRefence.FileId].FileName.FilenameNamespace);

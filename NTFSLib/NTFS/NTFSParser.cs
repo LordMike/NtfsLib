@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NTFSLib.IO;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
 using NTFSLib.Utilities;
-using System.Linq;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.NTFS

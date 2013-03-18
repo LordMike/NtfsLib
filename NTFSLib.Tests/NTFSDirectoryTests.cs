@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32.SafeHandles;
 using NTFSLib.Helpers;
@@ -8,7 +9,6 @@ using NTFSLib.IO;
 using NTFSLib.NTFS;
 using NTFSLib.Tests.Helpers;
 using RawDiskLib;
-using System.Linq;
 
 namespace NTFSLib.Tests
 {

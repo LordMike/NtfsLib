@@ -64,7 +64,7 @@ namespace NTFSLib.Compression
         {
             RemoveOldEntries(decompressedData[decompressedDataOffset + index]); // Remove old entries for this index 
 
-            int[] match = new int[] { 0, 0 };
+            int[] match = new[] { 0, 0 };
 
             if (index < 1 || length - index < MinMatchAmount)
             {
@@ -91,7 +91,7 @@ namespace NTFSLib.Compression
                 if (matchSize >= MinMatchAmount && matchSize > match[1])
                 {
                     // This is a good match 
-                    match = new int[] { (int)(index - matchStart), matchSize };
+                    match = new[] { (int)(index - matchStart), matchSize };
 
                     if (matchSize == MaxMatchAmount)
                     {

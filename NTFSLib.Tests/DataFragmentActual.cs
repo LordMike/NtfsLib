@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFSLib.Objects;
-using System.Linq;
 using NTFSLib.Tests.Helpers;
 
 namespace NTFSLib.Tests

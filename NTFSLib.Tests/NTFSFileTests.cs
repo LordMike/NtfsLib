@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using DeviceIOControlLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,7 +10,6 @@ using NTFSLib.NTFS;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Tests.Helpers;
 using RawDiskLib;
-using System.Linq;
 using FileAttributes = System.IO.FileAttributes;
 
 namespace NTFSLib.Tests

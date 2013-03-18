@@ -326,9 +326,9 @@ namespace TestApplication
 
                 if (frags.Count > 7)
                 {
-                    using (var sw = new StreamWriter(i + ".csv"))
+                    using (StreamWriter sw = new StreamWriter(i + ".csv"))
                     {
-                        foreach (var frag in frags)
+                        foreach (DataFragment frag in frags)
                         {
                             sw.WriteLine("{0};{1};{2};{3}", frag.LCN, frag.Clusters, frag.IsSparseFragment, frag.IsCompressed);
                         }

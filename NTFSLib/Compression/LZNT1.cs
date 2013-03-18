@@ -167,7 +167,7 @@ namespace NTFSLib.Compression
                     // Set the header to indicate non-compressed block
                     WriteBytesLittleEndian((ushort)(0x3000 | (BlockSize - 1)), compressed, compressedOffset + (int)headerPosition);
 
-                    Array.Copy(source, (int)sourceOffset + sourceCurrentBlock, compressed, compressedOffset + headerPosition + 2, BlockSize);
+                    Array.Copy(source, sourceOffset + sourceCurrentBlock, compressed, compressedOffset + headerPosition + 2, BlockSize);
                     destPointer = (uint)(headerPosition + 2 + BlockSize);
 
                     // Make sure decompression stops by setting the next two bytes to null, prevents us from having to 

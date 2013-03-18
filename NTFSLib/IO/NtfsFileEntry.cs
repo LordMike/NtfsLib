@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
-using System.Linq;
 using NTFSLib.Utilities;
 
 namespace NTFSLib.IO
