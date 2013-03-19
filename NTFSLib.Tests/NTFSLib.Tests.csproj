@@ -64,6 +64,7 @@
     <Compile Include="NTFSFileTests.cs" />
     <Compile Include="Helpers\StreamUtils.cs" />
     <Compile Include="NTFSDirectoryTests.cs" />
+    <Compile Include="BitConvertTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NTFSLib.Helpers\NTFSLib.Helpers.csproj">
