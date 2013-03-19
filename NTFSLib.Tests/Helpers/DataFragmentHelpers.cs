@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFSLib.Objects;
+using System.Linq;
 
 namespace NTFSLib.Tests.Helpers
 {
@@ -15,6 +16,21 @@ namespace NTFSLib.Tests.Helpers
 
             Assert.AreEqual(isSparseExtent, fragment.IsSparseFragment);
             Assert.AreEqual(isCompressedExtent, fragment.IsCompressed);
+        }
+
+        public static byte[] SaveFragments(DataFragment[] fragments)
+        {
+            // Sum up the expected # of bytes needed. As compressed fragments have been compacted they have been removed - so add two bytes for each compressed fragment to compensate.
+            int expectedLength = fragments.Sum(s => s.ThisObjectLength + (s.IsCompressed ? 2 : 0));
+
+            int saveLength = DataFragment.GetSaveLength(fragments);
+
+            Assert.AreEqual(expectedLength, saveLength);
+
+            byte[] data = new byte[saveLength + 1];
+            DataFragment.Save(data, 0, fragments);
+
+            return data;
         }
     }
 }

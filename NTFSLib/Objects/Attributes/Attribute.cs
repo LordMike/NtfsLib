@@ -165,7 +165,7 @@ namespace NTFSLib.Objects.Attributes
             {
                 Debug.Assert(res.AllowedResidentStates.HasFlag(AttributeResidentAllow.Resident));
 
-                res.ResidentHeader = AttributeResidentHeader.ParseHeader(res, data, offset + 16);
+                res.ResidentHeader = AttributeResidentHeader.ParseHeader(data, offset + 16);
 
                 int bodyOffset = offset + res.ResidentHeader.ContentOffset;
                 int length = offset + res.TotalLength - bodyOffset;
@@ -179,7 +179,7 @@ namespace NTFSLib.Objects.Attributes
             {
                 Debug.Assert(res.AllowedResidentStates.HasFlag(AttributeResidentAllow.NonResident));
 
-                res.NonResidentHeader = AttributeNonResidentHeader.ParseHeader(res, data, offset + 16);
+                res.NonResidentHeader = AttributeNonResidentHeader.ParseHeader(data, offset + 16);
 
                 int bodyOffset = offset + res.NonResidentHeader.ListOffset;
                 int length = res.TotalLength - res.NonResidentHeader.ListOffset;

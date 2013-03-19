@@ -54,6 +54,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="DataFragmentActual.cs" />
+    <Compile Include="Helpers\ArrayUtils.cs" />
     <Compile Include="Helpers\TempFile.cs" />
     <Compile Include="Helpers\DataFragmentHelpers.cs" />
     <Compile Include="DataFragmentTests.cs" />

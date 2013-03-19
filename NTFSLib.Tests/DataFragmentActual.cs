@@ -13,7 +13,7 @@ namespace NTFSLib.Tests
         public void ActualFragmentRun1()
         {
             // Mikes Disk E: MFT# 2116 AttributeList Non-Resident
-            byte[] data = new byte[] { 0x41, 0x01, 0x34, 0x38, 0x3D, 0x0B, 0x41, 0x02, 0xB2, 0x87, 0x4D, 0x08, 0x31, 0x01, 0x51, 0xD2, 0x83, 0x41, 0x02, 0x26, 0xB5, 0x63, 0xFE, 0x21, 0x02, 0x01, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            byte[] data = new byte[] { 0x41, 0x01, 0x34, 0x38, 0x3D, 0x0B, 0x41, 0x02, 0xB2, 0x87, 0x4D, 0x08, 0x31, 0x01, 0x51, 0xD2, 0x83, 0x41, 0x02, 0x26, 0xB5, 0x63, 0xFE, 0x21, 0x02, 0x01, 0xE0, 0x00 };
             DataFragment[] fragments = DataFragment.ParseFragments(data, data.Length, 0, 0, 7);
 
             Assert.AreEqual(5, fragments.Length);
@@ -23,6 +23,11 @@ namespace NTFSLib.Tests
             DataFragmentHelpers.CheckFragment(fragments[2], 1, 0, 3, 0x31, 319722039, false, false);
             DataFragmentHelpers.CheckFragment(fragments[3], 2, 0, 4, 0x41, 292702045, false, false);
             DataFragmentHelpers.CheckFragment(fragments[4], 2, 0, 6, 0x21, 292693854, false, false);
+
+            // Save to bytes
+            byte[] newData = DataFragmentHelpers.SaveFragments(fragments);
+
+            Assert.IsTrue(newData.SequanceEqualIn(data));
         }
 
         [TestMethod]
@@ -35,6 +40,11 @@ namespace NTFSLib.Tests
             Assert.AreEqual(1, fragments.Length);
 
             DataFragmentHelpers.CheckFragment(fragments[0], 1, 0, 0, 0x41, 230575152, false, false);
+
+            // Save to bytes
+            byte[] newData = DataFragmentHelpers.SaveFragments(fragments);
+
+            Assert.IsTrue(newData.SequanceEqualIn(data));
         }
 
         [TestMethod]
@@ -49,6 +59,11 @@ namespace NTFSLib.Tests
             DataFragmentHelpers.CheckFragment(fragments[0], 2, 0, 0, 0x41, 143180609, false, false);
             DataFragmentHelpers.CheckFragment(fragments[1], 2, 0, 2, 0x31, 143257893, false, false);
             DataFragmentHelpers.CheckFragment(fragments[2], 3, 0, 4, 0x31, 143340098, false, false);
+
+            // Save to bytes
+            byte[] newData = DataFragmentHelpers.SaveFragments(fragments);
+
+            Assert.IsTrue(newData.SequanceEqualIn(data));
         }
 
         [TestMethod]
@@ -122,6 +137,11 @@ namespace NTFSLib.Tests
             DataFragmentHelpers.CheckFragment(fragments[59], 15, 0, 1233, 0x31, 140884068, false, false);
             DataFragmentHelpers.CheckFragment(fragments[60], 17, 0, 1248, 0x31, 141728209, false, false);
             DataFragmentHelpers.CheckFragment(fragments[61], 6703, 0, 1265, 0x32, 142320089, false, false);
+
+            // Save to bytes
+            byte[] newData = DataFragmentHelpers.SaveFragments(fragments);
+
+            Assert.IsTrue(newData.SequanceEqualIn(data));
         }
 
         [TestMethod]
@@ -137,6 +157,11 @@ namespace NTFSLib.Tests
             DataFragmentHelpers.CheckFragment(fragments[0], 96, 0, 0, 0x01, 0, true, false);
             DataFragmentHelpers.CheckFragment(fragments[1], 2, 14, 96, 0x41, 11187052, false, true);
             DataFragmentHelpers.CheckFragment(fragments[2], 1, 15, 112, 0x11, 11187068, false, true);
+
+            // Save to bytes
+            byte[] newData = DataFragmentHelpers.SaveFragments(fragments.ToArray());
+
+            Assert.IsTrue(newData.SequanceEqualIn(data));
         }
     }
 }

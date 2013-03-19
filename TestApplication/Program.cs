@@ -11,6 +11,7 @@ using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Objects.Headers;
 using NTFSLib.Objects.Specials.Files;
 using RawDiskLib;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
@@ -51,9 +52,29 @@ namespace TestApplication
                 swa.Start();
                 foreach (FileRecord fileRecord in parser.GetRecords(true))
                 {
+                    foreach (Attribute attribute in fileRecord.Attributes)
+                    {
+                        byte[] data;
+                        if (attribute.NonResidentFlag == ResidentFlag.NonResident)
+                        {
+                            data = new byte[attribute.NonResidentHeader.GetSaveLength()];
+                            attribute.NonResidentHeader.Save(data, 0);
+
+                            AttributeNonResidentHeader x1 = AttributeNonResidentHeader.ParseHeader(data, 0);
+                            x1.Fragments = DataFragment.ParseFragments(data, data.Length - 48, 48, x1.StartingVCN, x1.EndingVCN);
+                        }
+                        else
+                        {
+                            data = new byte[attribute.ResidentHeader.GetSaveLength()];
+                            attribute.ResidentHeader.Save(data, 0);
+
+                            AttributeResidentHeader x2 = AttributeResidentHeader.ParseHeader(data, 0);
+                        }
+                    }
+
                     //Console.WriteLine(fileRecord.FileReference + " - " + fileRecord.Flags.HasFlag(FileEntryFlags.FileInUse));
                     xi++;
-                    if(xi % 50000 == 0)
+                    if (xi % 50000 == 0)
                         Console.WriteLine(xi);
                 }
             }

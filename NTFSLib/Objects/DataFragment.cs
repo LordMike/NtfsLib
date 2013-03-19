@@ -15,6 +15,7 @@ namespace NTFSLib.Objects
         public byte CompressedClusters { get; set; }
         public long LCN { get; set; }
         public long StartingVCN { get; set; }
+        public int ThisObjectLength { get; private set; }
 
         /// <summary>
         /// If this fragment is sparse, there is not data on the disk to reflect the data in the file. 
@@ -34,9 +35,117 @@ namespace NTFSLib.Objects
             get { return CompressedClusters != 0; }
         }
 
-        public int ThisObjectLength { get; private set; }
+        private int GetSaveLength(long previousLcn)
+        {
+            long deltaLcn = LCN == 0 ? 0 : LCN - previousLcn;
 
-        public static DataFragment ParseData(byte[] data, long previousLcn, int offset)
+            byte offsetBytes = CalculateBytesNecessary(deltaLcn);
+            byte lengthBytes = CalculateBytesNecessary(Clusters);
+
+            int nextBytes = 0;
+            if (IsCompressed)
+            {
+                nextBytes = 1 + CalculateBytesNecessary(CompressedClusters);
+            }
+
+            return 1 + offsetBytes + lengthBytes + nextBytes;
+        }
+
+        private void Save(byte[] buffer, int offset, long previousLcn)
+        {
+            long deltaLcn = LCN == 0 ? 0 : LCN - previousLcn;
+            long length = Clusters;
+
+            byte offsetBytes = CalculateBytesNecessary(deltaLcn);
+            byte lengthBytes = CalculateBytesNecessary(length);
+
+            buffer[offset] = (byte)((offsetBytes << 4) | lengthBytes);
+
+            for (int i = 0; i < lengthBytes; i++)
+            {
+                buffer[offset + 1 + i] = (byte)(length & 0xFF);
+                length >>= 8;
+            }
+
+            for (int i = 0; i < offsetBytes; i++)
+            {
+                buffer[offset + 1 + lengthBytes + i] = (byte)(deltaLcn & 0xFF);
+                deltaLcn >>= 8;
+            }
+
+            // Make followup compressed cluster
+            if (IsCompressed)
+            {
+                length = CompressedClusters;
+                lengthBytes = CalculateBytesNecessary(length);
+
+                buffer[offset + 1 + lengthBytes + offsetBytes] = lengthBytes;
+
+                for (int i = 0; i < lengthBytes; i++)
+                {
+                    buffer[offset + 1 + lengthBytes + offsetBytes + 1 + i] = (byte)(length & 0xFF);
+                    length >>= 8;
+                }
+            }
+        }
+
+        private static byte CalculateBytesNecessary(long value)
+        {
+            if (value == 0)
+                return 0;
+
+            bool isNegative = false;
+            if (value < 0)
+            {
+                value = -value;
+                isNegative = true;
+            }
+
+            long tester = 0x80L;
+            for (byte i = 0; i < 8; i++)
+            {
+                if (tester > value)
+                    return (byte)(i + 1);
+
+                tester <<= 8;
+            }
+
+            throw new Exception();
+        }
+
+        public static int GetSaveLength(IEnumerable<DataFragment> fragments)
+        {
+            long lcn = 0;
+            int saveLength = 0;
+
+            foreach (DataFragment fragment in fragments)
+            {
+                saveLength += fragment.GetSaveLength(lcn);
+
+                if (fragment.LCN != 0)
+                    lcn = fragment.LCN;
+            }
+
+            return saveLength;
+        }
+
+        public static void Save(byte[] buffer, int offset, IEnumerable<DataFragment> fragments)
+        {
+            long lcn = 0;
+            int pointer = offset;
+
+            foreach (DataFragment fragment in fragments)
+            {
+                int saveLength = fragment.GetSaveLength(lcn);
+                fragment.Save(buffer, pointer, lcn);
+
+                pointer += saveLength;
+                if (fragment.LCN != 0)
+                    lcn = fragment.LCN;
+            }
+        }
+
+        public static DataFragment ParseFragment(byte[] data, long previousLcn, int offset)
         {
             DataFragment res = new DataFragment();
 
@@ -115,11 +224,11 @@ namespace NTFSLib.Objects
 
             int pointer = offset;
             long lastLcn = 0;
-            while (pointer <= offset + maxLength)
+            while (pointer < offset + maxLength)
             {
                 Debug.Assert(pointer <= offset + maxLength);
 
-                DataFragment fragment = ParseData(data, lastLcn, pointer);
+                DataFragment fragment = ParseFragment(data, lastLcn, pointer);
 
                 pointer += fragment.ThisObjectLength;
 
@@ -150,7 +259,7 @@ namespace NTFSLib.Objects
         {
             for (int i = 0; i < fragments.Count - 1; i++)
             {
-                if (fragments[i + 1].IsSparseFragment && 
+                if (fragments[i + 1].IsSparseFragment &&
                     (fragments[i].Clusters + fragments[i + 1].Clusters) % 16 == 0 &&
                     fragments[i + 1].Clusters < 16)
                 {
@@ -168,7 +277,7 @@ namespace NTFSLib.Objects
             for (int j = 0; j < fragments.Count - 1; j++)
             {
                 if (!fragments[j].IsCompressed && !fragments[j].IsSparseFragment &&
-                    !fragments[j + 1].IsCompressed && !fragments[j + 1].IsSparseFragment && 
+                    !fragments[j + 1].IsCompressed && !fragments[j + 1].IsSparseFragment &&
                     fragments[j].LCN + fragments[j].Clusters == fragments[j + 1].LCN)
                 {
                     // Compact

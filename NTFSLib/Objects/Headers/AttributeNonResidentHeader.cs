@@ -1,9 +1,10 @@
 ﻿using System;
-using Attribute = NTFSLib.Objects.Attributes.Attribute;
+using System.Diagnostics;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Headers
 {
-    public class AttributeNonResidentHeader
+    public class AttributeNonResidentHeader : ISaveableObject
     {
         public long StartingVCN { get; set; }
         public long EndingVCN { get; set; }
@@ -13,9 +14,13 @@ namespace NTFSLib.Objects.Headers
         public ulong ContentSize { get; set; }
         public ulong ContentSizeInitialized { get; set; }
         public ulong ContentSizeCompressed { get; set; }
+        public DataFragment[] Fragments { get; set; }
 
-        public static AttributeNonResidentHeader ParseHeader(Attribute parent, byte[] data, int offset = 0)
+        public static AttributeNonResidentHeader ParseHeader(byte[] data, int offset = 0)
         {
+            Debug.Assert(data.Length - offset >= 48);
+            Debug.Assert(offset >= 0);
+
             AttributeNonResidentHeader res = new AttributeNonResidentHeader();
 
             res.StartingVCN = BitConverter.ToInt64(data, offset);
@@ -27,11 +32,47 @@ namespace NTFSLib.Objects.Headers
             res.ContentSizeInitialized = BitConverter.ToUInt64(data, offset + 40);
 
             if (res.CompressionUnitSize != 0)
+            {
+                Debug.Assert(data.Length - offset >= 56);
                 res.ContentSizeCompressed = BitConverter.ToUInt64(data, offset + 48);
+            }
 
             return res;
         }
 
-        public DataFragment[] Fragments { get; set; }
+        public int GetSaveLength()
+        {
+            int size = ContentSizeCompressed != 0 ? 56 : 48;
+
+            if (Fragments != null)
+            {
+                size += DataFragment.GetSaveLength(Fragments);
+            }
+
+            return size;
+        }
+
+        public void Save(byte[] buffer, int offset)
+        {
+            Debug.Assert(buffer.Length - offset >= GetSaveLength());
+
+            LittleEndianConverter.GetBytes(buffer, offset, StartingVCN);
+            LittleEndianConverter.GetBytes(buffer, offset + 8, EndingVCN);
+            LittleEndianConverter.GetBytes(buffer, offset + 16, ListOffset);
+            LittleEndianConverter.GetBytes(buffer, offset + 18, CompressionUnitSize);
+            LittleEndianConverter.GetBytes(buffer, offset + 24, ContentSizeAllocated);
+            LittleEndianConverter.GetBytes(buffer, offset + 32, ContentSize);
+            LittleEndianConverter.GetBytes(buffer, offset + 40, ContentSizeInitialized);
+
+            if (CompressionUnitSize != 0)
+                LittleEndianConverter.GetBytes(buffer, offset + 48, ContentSizeCompressed);
+
+            if (Fragments != null)
+            {
+                int pointer = ContentSizeCompressed != 0 ? 56 : 48;
+
+                DataFragment.Save(buffer, pointer, Fragments);
+            }
+        }
     }
 }
