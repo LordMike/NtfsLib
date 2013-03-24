@@ -24,6 +24,20 @@ namespace NTFSLib.Utilities
             return DateTime.FromFileTimeUtc(fileTime);
         }
 
+        public static void ToWinFileTime(byte[] data, int offset, DateTime dateTime)
+        {
+            if (dateTime == DateTime.MaxValue)
+            {
+                LittleEndianConverter.GetBytes(data, offset, long.MaxValue);
+            }
+            else
+            {
+                long fileTime = dateTime.ToFileTimeUtc();
+
+                LittleEndianConverter.GetBytes(data, offset, fileTime);
+            }
+        }
+
         public static byte[] ReadFragments(INTFSInfo ntfsInfo, DataFragment[] fragments)
         {
             int totalLength = (int)(fragments.Sum(s => (decimal)s.Clusters) * ntfsInfo.BytesPrCluster);

@@ -22,18 +22,6 @@ namespace TestApplication
     {
         static void Main(string[] args)
         {
-            //{
-            //    DirectoryInfo dir = new DirectoryInfo("E:\\testDir");
-
-            //    dir.Create();
-            //    for (int i = 1024000; i < 1024000 * 2; i++)
-            //    {
-            //        File.Create(Path.Combine(dir.FullName, i + ".txt"));
-            //        if (i % 10000 == 0)
-            //            Console.WriteLine(i);
-            //    }
-            //}
-
             //Console.WriteLine("Done");
             //Console.ReadLine();
 

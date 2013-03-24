@@ -56,5 +56,40 @@ namespace NTFSLib.Objects.Attributes
                 USN = BitConverter.ToUInt64(data, offset + 64);
             }
         }
+
+        public override int GetSaveLength()
+        {
+            // TODO: Get the actual NTFS Version in here to check against
+            if (OwnerId != 0 || SecurityId != 0 || QuotaCharged != 0 || USN != 0)
+            {
+                return base.GetSaveLength() + 72;
+            }
+
+            return base.GetSaveLength() + 48;
+        }
+
+        public override void Save(byte[] buffer, int offset)
+        {
+            base.Save(buffer, offset);
+
+            LittleEndianConverter.GetBytes(buffer, offset, TimeCreated);
+            LittleEndianConverter.GetBytes(buffer, offset + 8, TimeModified);
+            LittleEndianConverter.GetBytes(buffer, offset + 16, TimeMftModified);
+            LittleEndianConverter.GetBytes(buffer, offset + 24, TimeAccessed);
+            LittleEndianConverter.GetBytes(buffer, offset + 32, (int)DosPermissions);
+
+            LittleEndianConverter.GetBytes(buffer, offset + 36, MaxmiumVersions);
+            LittleEndianConverter.GetBytes(buffer, offset + 40, VersionNumber);
+            LittleEndianConverter.GetBytes(buffer, offset + 44, ClassId);
+
+            // TODO: Get the actual NTFS Version in here to check against
+            if (OwnerId != 0 || SecurityId != 0 || QuotaCharged != 0 || USN != 0)
+            {
+                LittleEndianConverter.GetBytes(buffer, offset + 48, OwnerId);
+                LittleEndianConverter.GetBytes(buffer, offset + 52, SecurityId);
+                LittleEndianConverter.GetBytes(buffer, offset + 56, QuotaCharged);
+                LittleEndianConverter.GetBytes(buffer, offset + 64, USN);
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace NTFSLib.Utilities
 {
@@ -73,5 +74,25 @@ namespace NTFSLib.Utilities
             buffer[offset + 6] = (byte)((value >> 48) & 0xFF);
             buffer[offset + 7] = (byte)((value >> 56) & 0xFF);
         }
+
+        public static void GetBytes(byte[] buffer, int offset, DateTime value, DatetimeBinaryFormat format = DatetimeBinaryFormat.WinFileTime)
+        {
+            Debug.Assert(buffer.Length - offset >= 8);      // WinFileTime requires 8 bytes
+            Debug.Assert(offset >= 0);
+
+            switch (format)
+            {
+                case DatetimeBinaryFormat.WinFileTime:
+                    NtfsUtils.ToWinFileTime(buffer, offset, value);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("format");
+            }
+        }
+    }
+
+    public enum DatetimeBinaryFormat
+    {
+        WinFileTime
     }
 }

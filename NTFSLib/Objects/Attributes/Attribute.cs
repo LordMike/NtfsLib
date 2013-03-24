@@ -6,10 +6,11 @@ using System.Text;
 using NTFSLib.NTFS;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
+using NTFSLib.Utilities;
 
 namespace NTFSLib.Objects.Attributes
 {
-    public abstract class Attribute
+    public abstract class Attribute : ISaveableObject
     {
         public AttributeType Type { get; set; }
         public ushort TotalLength { get; set; }
@@ -61,7 +62,6 @@ namespace NTFSLib.Objects.Attributes
                 AttributeName = string.Empty;
             else
                 AttributeName = Encoding.Unicode.GetString(data, offset + OffsetToName, NameLength * 2);
-
         }
 
         internal virtual void ParseAttributeResidentBody(byte[] data, int maxLength, int offset)
@@ -202,6 +202,62 @@ namespace NTFSLib.Objects.Attributes
             }
 
             return res;
+        }
+
+        public virtual int GetSaveLength()
+        {
+            if (Type == AttributeType.EndOfAttributes)
+                return 4;
+
+            int length = 16 + NameLength * 2;
+
+            if (NonResidentFlag == ResidentFlag.NonResident)
+            {
+                length += NonResidentHeader.GetSaveLength();
+            }
+            else if (NonResidentFlag == ResidentFlag.Resident)
+            {
+                length += ResidentHeader.GetSaveLength();
+            }
+
+            return length;
+        }
+
+        public virtual void Save(byte[] buffer, int offset)
+        {
+            Debug.Assert(buffer.Length - offset >= GetSaveLength());
+            Debug.Assert(offset >= 0);
+
+            LittleEndianConverter.GetBytes(buffer, offset, (uint)Type);
+
+            if (Type == AttributeType.EndOfAttributes)
+                return;
+
+            LittleEndianConverter.GetBytes(buffer, offset + 4, TotalLength);
+            LittleEndianConverter.GetBytes(buffer, offset + 8, (byte)NonResidentFlag);
+            LittleEndianConverter.GetBytes(buffer, offset + 9, NameLength);
+            LittleEndianConverter.GetBytes(buffer, offset + 10, OffsetToName);
+            LittleEndianConverter.GetBytes(buffer, offset + 12, (ushort)Flags);
+            LittleEndianConverter.GetBytes(buffer, offset + 14, Id);
+
+            if (NameLength != 0)
+            {
+                byte[] stringData = Encoding.Unicode.GetBytes(AttributeName);
+
+                Debug.Assert(NameLength * 2 == stringData.Length);
+
+                Array.Copy(stringData, 0, buffer, offset + OffsetToName, stringData.Length);
+            }
+
+            // Header
+            if (NonResidentFlag == ResidentFlag.NonResident)
+            {
+                NonResidentHeader.Save(buffer, offset + 16);
+            }
+            else if (NonResidentFlag == ResidentFlag.Resident)
+            {
+                ResidentHeader.Save(buffer, offset + 16);
+            }
         }
     }
 }

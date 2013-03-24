@@ -24,7 +24,7 @@ namespace NTFSLib.Objects.Headers
 
         public int GetSaveLength()
         {
-            return 6;
+            return 8;
         }
 
         public void Save(byte[] buffer, int offset)
@@ -34,6 +34,5 @@ namespace NTFSLib.Objects.Headers
             LittleEndianConverter.GetBytes(buffer, offset, ContentLength);
             LittleEndianConverter.GetBytes(buffer, offset + 4, ContentOffset);
         }
-
     }
 }
