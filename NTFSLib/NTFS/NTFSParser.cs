@@ -22,6 +22,7 @@ namespace NTFSLib.NTFS
         private FileRecord _mftRecord;
         private BitArray _usedRecords;
 
+        private uint _sectorsPrRecord;
         public uint BytesPrFileRecord { get; private set; }
         public uint BytesPrCluster
         {
@@ -61,6 +62,7 @@ namespace NTFSLib.NTFS
 
             // Get filerecord size
             BytesPrFileRecord = _boot.MFTRecordSizeBytes;
+            _sectorsPrRecord = _boot.MFTRecordSizeBytes / _boot.BytesPrSector;
         }
         private void InitiateMFT()
         {
@@ -70,9 +72,7 @@ namespace NTFSLib.NTFS
             _diskStream.Read(_buffer, 0, _buffer.Length);
 
             // Parse
-            FileRecord record = FileRecord.ParseHeader(_buffer, 0);
-            NtfsUtils.ApplyUSNPatch(_buffer, 0, _buffer.Length / _boot.BytesPrSector, _boot.BytesPrSector, record.USNNumber, record.USNData);
-            record.ParseAttributes(_buffer, (uint)_buffer.Length, record.OffsetToFirstAttribute);
+            FileRecord record = FileRecord.Parse(_buffer, 0, _boot.BytesPrSector, _sectorsPrRecord);
 
             // TODO: Parse nonresident $DATA's
             _mftRecord = record;
@@ -125,9 +125,7 @@ namespace NTFSLib.NTFS
                 return null;
 
             // Parse
-            FileRecord record = FileRecord.ParseHeader(_buffer, 0);
-            NtfsUtils.ApplyUSNPatch(_buffer, 0, _buffer.Length / _boot.BytesPrSector, _boot.BytesPrSector, record.USNNumber, record.USNData);
-            record.ParseAttributes(_buffer, (uint)_buffer.Length, record.OffsetToFirstAttribute);
+            FileRecord record = FileRecord.Parse(_buffer, 0, _boot.BytesPrSector, _sectorsPrRecord);
 
             // Increment number
             CurrentMftRecordNumber = record.MFTNumber + 1;

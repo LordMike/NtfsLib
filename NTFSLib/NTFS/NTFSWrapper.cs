@@ -48,6 +48,7 @@ namespace NTFSLib.NTFS
             return Provider.CreateDiskStream();
         }
 
+        private uint _sectorsPrRecord;
         public uint BytesPrFileRecord { get; private set; }
         public uint FileRecordCount { get; private set; }
 
@@ -76,6 +77,13 @@ namespace NTFSLib.NTFS
                 Boot.OEMCode = "NTFS";
                 Boot.SectorsPrCluster = 2;      // Small cluster
                 Boot.BytesPrSector = 512;       // Smallest possible sector
+
+                // Get FileRecord size (read first record's size)
+                byte[] data = new byte[512];
+                Provider.ReadBytes(data, 0, 0, data.Length);
+
+                Boot.MFTRecordSizeBytes = FileRecord.ParseAllocatedSize(data,0);
+
             }
             else
             {
@@ -87,7 +95,8 @@ namespace NTFSLib.NTFS
             }
 
             // Get FileRecord size
-            RefreshFileRecordSize();
+            BytesPrFileRecord = Boot.MFTRecordSizeBytes;
+            Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
 
             // Prep cache
             MftRawCache = new RawDiskCache((int)(_rawDiskCacheSizeRecords * BytesPrFileRecord));
@@ -179,25 +188,6 @@ namespace NTFSLib.NTFS
             }
         }
 
-        private void RefreshFileRecordSize()
-        {
-            byte[] data = new byte[512];
-            if (Provider.MftFileOnly)
-            {
-                // Get the first 512 bytes of the provider
-                Provider.ReadBytes(data, 0, 0, 512);
-            }
-            else
-            {
-                // Not continous, adhere to $BOOT
-                Provider.ReadBytes(data, 0, Boot.MFTCluster * BytesPrCluster, 512);
-            }
-
-            BytesPrFileRecord = FileRecord.ParseAllocatedSize(data, 0);
-
-            Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
-        }
-
         public void ParseNonResidentAttributes(FileRecord record)
         {
             if (Provider.MftFileOnly)
@@ -223,10 +213,12 @@ namespace NTFSLib.NTFS
 
         internal void ParseAttributeLists(FileRecord record)
         {
-            while (record.Attributes.Any(s => s.Type == AttributeType.ATTRIBUTE_LIST))
-            {
-                AttributeList listAttr = record.Attributes.OfType<AttributeList>().First();
+            if (record.ExternalAttributes.Count > 0)
+                // Already parsed
+                return;
 
+            foreach (AttributeList listAttr in record.Attributes.OfType<AttributeList>())
+            {
                 if (listAttr.NonResidentFlag == ResidentFlag.NonResident)
                 {
                     if (Provider.MftFileOnly)
@@ -254,20 +246,17 @@ namespace NTFSLib.NTFS
                     Debug.Assert(otherAttrib.Count == 1);
                     Debug.Assert(otherAttrib[0].Type == item.Type);
 
-                    record.Attributes.AddRange(otherAttrib);
-                }
+                    Attribute attribute = otherAttrib.First();
+                    attribute.OwningRecord = otherRecord.FileReference;
 
-                record.Attributes.Remove(listAttr);
+                    record.ExternalAttributes.Add(attribute);
+                }
             }
         }
 
         private FileRecord ParseMFTRecord(byte[] data)
         {
-            FileRecord record = FileRecord.ParseHeader(data, 0);
-            NtfsUtils.ApplyUSNPatch(data, 0, data.Length / Boot.BytesPrSector, Boot.BytesPrSector, record.USNNumber, record.USNData);
-            record.ParseAttributes(data, (uint)data.Length, record.OffsetToFirstAttribute);
-
-            return record;
+            return FileRecord.Parse(data, 0, Boot.BytesPrSector, _sectorsPrRecord);
         }
 
         public FileRecord ReadMFTRecord(SpecialMFTFiles file)

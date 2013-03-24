@@ -20,6 +20,7 @@ namespace NTFSLib.Objects.Attributes
         public AttributeFlags Flags { get; set; }
         public ushort Id { get; set; }
 
+        public FileReference OwningRecord { get; set; }
         public string AttributeName { get; set; }
 
         public AttributeResidentHeader ResidentHeader { get; set; }

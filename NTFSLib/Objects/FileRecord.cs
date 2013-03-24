@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using NTFSLib.Objects.Enums;
+using NTFSLib.Utilities;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.Objects
@@ -25,7 +26,10 @@ namespace NTFSLib.Objects
         public byte[] USNNumber { get; set; }
         public byte[] USNData { get; set; }
 
+        public FileReference FileReference { get; set; }
+
         public List<Attribute> Attributes { get; set; }
+        public List<Attribute> ExternalAttributes { get; set; }
 
         public static uint ParseAllocatedSize(byte[] data, int offset)
         {
@@ -34,16 +38,18 @@ namespace NTFSLib.Objects
             return BitConverter.ToUInt32(data, offset + 28);
         }
 
-        public FileReference FileReference { get; set; }
-
         public bool IsExtensionRecord
         {
             get { return BaseFile.RawId != 0; }
         }
 
-        public static FileRecord ParseHeader(byte[] data, int offset)
+        public static FileRecord Parse(byte[] data, int offset, ushort bytesPrSector, uint sectors)
         {
-            Debug.Assert(data.Length - offset >= 50);
+            uint length = bytesPrSector * sectors;
+            Debug.Assert(data.Length - offset >= length);
+            Debug.Assert(length >= 50);
+            Debug.Assert(bytesPrSector % 512 == 0 && bytesPrSector > 0);
+            Debug.Assert(sectors > 0);
 
             FileRecord res = new FileRecord();
 
@@ -74,14 +80,22 @@ namespace NTFSLib.Objects
 
             res.FileReference = new FileReference(res.MFTNumber, res.SequenceNumber);
 
+            // Apply the USN Path
+            NtfsUtils.ApplyUSNPatch(data, offset, sectors, bytesPrSector, res.USNNumber, res.USNData);
+
+            res.Attributes = new List<Attribute>();
+            res.ExternalAttributes = new List<Attribute>();
+
+            // Parse attributes
+            res.ParseAttributes(data, res.SizeOfFileRecord - res.OffsetToFirstAttribute, offset + res.OffsetToFirstAttribute);
+
             return res;
         }
 
-        public void ParseAttributes(byte[] data, uint maxLength, int offset)
+        private void ParseAttributes(byte[] data, uint maxLength, int offset)
         {
             Debug.Assert(Signature == "FILE");
 
-            Attributes = new List<Attribute>();
             int attribOffset = offset;
             for (int attribId = 0; ; attribId++)
             {
@@ -91,9 +105,10 @@ namespace NTFSLib.Objects
 
                 uint length = Attribute.GetTotalLength(data, attribOffset);
 
-                Debug.Assert(attribOffset + length <= maxLength);
+                Debug.Assert(attribOffset + length <= offset + maxLength);
 
-                Attribute attrib = Attribute.ParseSingleAttribute(data, (int) length, attribOffset);
+                Attribute attrib = Attribute.ParseSingleAttribute(data, (int)length, attribOffset);
+                attrib.OwningRecord = FileReference;
                 Attributes.Add(attrib);
 
                 attribOffset += attrib.TotalLength;

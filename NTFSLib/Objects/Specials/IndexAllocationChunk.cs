@@ -61,7 +61,7 @@ namespace NTFSLib.Objects.Specials
             Array.Copy(data, offset + res.OffsetToUSN + 2, res.USNData, 0, res.USNData.Length);
 
             // Patch USN Data
-            NtfsUtils.ApplyUSNPatch(data, offset, (int) ((res.SizeOfIndexAllocated + 24) / ntfsInfo.BytesPrSector), (ushort) ntfsInfo.BytesPrSector, res.USNNumber, res.USNData);
+            NtfsUtils.ApplyUSNPatch(data, offset, (res.SizeOfIndexAllocated + 24) / ntfsInfo.BytesPrSector, (ushort)ntfsInfo.BytesPrSector, res.USNNumber, res.USNData);
 
             Debug.Assert(offset + res.SizeOfIndexTotal <= data.Length);
 

@@ -53,7 +53,7 @@ namespace NTFSLib.Utilities
             return data;
         }
 
-        public static void ApplyUSNPatch(byte[] data, int offset, int sectors, ushort bytesPrSector, byte[] usnNumber, byte[] usnData)
+        public static void ApplyUSNPatch(byte[] data, int offset, uint sectors, ushort bytesPrSector, byte[] usnNumber, byte[] usnData)
         {
             Debug.Assert(data.Length >= offset + sectors * bytesPrSector);
             Debug.Assert(usnNumber.Length == 2);
