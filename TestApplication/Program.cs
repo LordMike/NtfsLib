@@ -28,29 +28,29 @@ namespace TestApplication
             const char driveLetter = 'G';
             RawDisk disk = new RawDisk(driveLetter);
 
-            Stopwatch swa = new Stopwatch();
-            int xi = 0;
-            using (RawDiskStream stream = disk.CreateDiskStream())
-            {
-                NTFSParser parser = new NTFSParser(stream);
+            //Stopwatch swa = new Stopwatch();
+            //int xi = 0;
+            //using (RawDiskStream stream = disk.CreateDiskStream())
+            //{
+            //    NTFSParser parser = new NTFSParser(stream);
 
-                parser.InitiateRecordBitarray();
+            //    parser.InitiateRecordBitarray();
 
-                Console.WriteLine("Begun for " + parser.FileRecordCount + " records");
-                swa.Start();
-                foreach (FileRecord fileRecord in parser.GetRecords(true))
-                {
-                    //Console.WriteLine(fileRecord.FileReference + " - " + fileRecord.Flags.HasFlag(FileEntryFlags.FileInUse));
-                    xi++;
-                    if (xi % 50000 == 0)
-                        Console.WriteLine(xi);
-                }
-            }
-            swa.Stop();
+            //    Console.WriteLine("Begun for " + parser.FileRecordCount + " records");
+            //    swa.Start();
+            //    foreach (FileRecord fileRecord in parser.GetRecords(true))
+            //    {
+            //        //Console.WriteLine(fileRecord.FileReference + " - " + fileRecord.Flags.HasFlag(FileEntryFlags.FileInUse));
+            //        xi++;
+            //        if (xi % 50000 == 0)
+            //            Console.WriteLine(xi);
+            //    }
+            //}
+            //swa.Stop();
 
-            Console.WriteLine("{0:N0} records", xi);
-            Console.WriteLine("{0:N2} ms", swa.ElapsedMilliseconds);
-            Console.ReadLine();
+            //Console.WriteLine("{0:N0} records", xi);
+            //Console.WriteLine("{0:N2} ms", swa.ElapsedMilliseconds);
+            //Console.ReadLine();
 
             NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 
@@ -136,7 +136,7 @@ namespace TestApplication
             //}
 
             // Parse $AttrDef
-            AttrDef attrDef = AttrDef.ParseFile(ntfsWrapper.OpenFileRecord(ntfsWrapper.FileAttrDef));
+            //AttrDef attrDef = AttrDef.ParseFile(ntfsWrapper.OpenFileRecord(ntfsWrapper.FileAttrDef));
 
             // Parse $Secure
             //var xy = ntfs.OpenFileRecord(ntfs.FileSecure, "$SDS");
@@ -240,7 +240,7 @@ namespace TestApplication
 
                 Console.WriteLine();
 
-                foreach (Attribute attribute in record.Attributes.OrderBy(s => s.Id))
+                foreach (Attribute attribute in record.Attributes.Concat(record.ExternalAttributes).OrderBy(s => s.Id))
                 {
                     string name = string.IsNullOrWhiteSpace(attribute.AttributeName) ? string.Empty : " '" + attribute.AttributeName + "'";
 

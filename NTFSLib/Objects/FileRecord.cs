@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Utilities;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
+using System.Linq;
 
 namespace NTFSLib.Objects
 {
     public class FileRecord
     {
+        private List<Attribute> _attributes;
+        private List<Attribute> _externalAttributes;
+
         public string Signature { get; set; }
         public ushort OffsetToUSN { get; set; }
         public ushort USNSizeWords { get; set; }
@@ -28,8 +34,14 @@ namespace NTFSLib.Objects
 
         public FileReference FileReference { get; set; }
 
-        public List<Attribute> Attributes { get; set; }
-        public List<Attribute> ExternalAttributes { get; set; }
+        public ReadOnlyCollection<Attribute> Attributes
+        {
+            get { return _attributes.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<Attribute> ExternalAttributes
+        {
+            get { return _externalAttributes.AsReadOnly(); }
+        }
 
         public static uint ParseAllocatedSize(byte[] data, int offset)
         {
@@ -83,8 +95,8 @@ namespace NTFSLib.Objects
             // Apply the USN Path
             NtfsUtils.ApplyUSNPatch(data, offset, sectors, bytesPrSector, res.USNNumber, res.USNData);
 
-            res.Attributes = new List<Attribute>();
-            res.ExternalAttributes = new List<Attribute>();
+            res._attributes = new List<Attribute>();
+            res._externalAttributes = new List<Attribute>();
 
             // Parse attributes
             res.ParseAttributes(data, res.SizeOfFileRecord - res.OffsetToFirstAttribute, offset + res.OffsetToFirstAttribute);
@@ -109,9 +121,20 @@ namespace NTFSLib.Objects
 
                 Attribute attrib = Attribute.ParseSingleAttribute(data, (int)length, attribOffset);
                 attrib.OwningRecord = FileReference;
-                Attributes.Add(attrib);
+                _attributes.Add(attrib);
 
                 attribOffset += attrib.TotalLength;
+            }
+        }
+
+        public void ParseExternalAttributes(FileRecord record)
+        {
+            foreach (AttributeList list in Attributes.OfType<AttributeList>())
+            {
+                // Find attributes to get from 'record'
+                List<Attribute> attributesToUse = record.Attributes.Where(s => list.Items.Any(x => x.AttributeId == s.Id && s.OwningRecord == x.BaseFile)).ToList();
+
+                _externalAttributes.AddRange(attributesToUse);
             }
         }
     }

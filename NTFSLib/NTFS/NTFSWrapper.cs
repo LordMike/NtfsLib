@@ -96,6 +96,7 @@ namespace NTFSLib.NTFS
 
             // Get FileRecord size
             BytesPrFileRecord = Boot.MFTRecordSizeBytes;
+            _sectorsPrRecord = BytesPrFileRecord / BytesPrSector;
             Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
 
             // Prep cache
@@ -217,6 +218,7 @@ namespace NTFSLib.NTFS
                 // Already parsed
                 return;
 
+            Dictionary<FileReference, FileRecord> externalRecords = new Dictionary<FileReference, FileRecord>();
             foreach (AttributeList listAttr in record.Attributes.OfType<AttributeList>())
             {
                 if (listAttr.NonResidentFlag == ResidentFlag.NonResident)
@@ -237,20 +239,20 @@ namespace NTFSLib.NTFS
                         // Skip own attributes
                         continue;
 
+                    if (externalRecords.ContainsKey(item.BaseFile))
+                        continue;
+
                     FileRecord otherRecord = ReadMFTRecord(item.BaseFile.FileId);
+                    externalRecords[item.BaseFile] = otherRecord;
 
                     Debug.Assert(otherRecord.FileReference.Equals(item.BaseFile));
-
-                    List<Attribute> otherAttrib = otherRecord.Attributes.Where(s => s.Id == item.AttributeId).ToList();
-
-                    Debug.Assert(otherAttrib.Count == 1);
-                    Debug.Assert(otherAttrib[0].Type == item.Type);
-
-                    Attribute attribute = otherAttrib.First();
-                    attribute.OwningRecord = otherRecord.FileReference;
-
-                    record.ExternalAttributes.Add(attribute);
                 }
+            }
+
+            // Add all records to the record in question
+            foreach (FileRecord externalRecord in externalRecords.Values)
+            {
+                record.ParseExternalAttributes(externalRecord);
             }
         }
 
