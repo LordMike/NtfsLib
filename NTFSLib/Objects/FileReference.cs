@@ -12,9 +12,9 @@ namespace NTFSLib.Objects
         public FileReference(ulong rawId)
         {
             FileSequenceNumber = (ushort)(rawId >> 48);     // Get the high-order 16 bites
-            FileId = (uint) (rawId & 0xFFFFFFFFUL);         // Get the low-order 32 bits
+            FileId = (uint)(rawId & 0xFFFFFFFFUL);         // Get the low-order 32 bits
 
-            ushort middleSpace = (ushort) ((rawId >> 32) & 0xFFFFUL);    // Get the 16 bits in-between the Id and the SequenceNumber
+            ushort middleSpace = (ushort)((rawId >> 32) & 0xFFFFUL);    // Get the 16 bits in-between the Id and the SequenceNumber
             Debug.Assert(middleSpace == 0);
 
             RawId = rawId;
@@ -34,25 +34,31 @@ namespace NTFSLib.Objects
 
         public bool Equals(FileReference other)
         {
-            if (other == null)
-                return false;
-
-            if (other == this)
-                return true;
-
-            return other.RawId == RawId;
+            return this == other;
         }
 
         public override bool Equals(object obj)
         {
-            FileReference other = obj as FileReference;
-
-            return Equals(other);
+            return Equals(obj as FileReference);
         }
 
         public override int GetHashCode()
         {
             return RawId.GetHashCode();
+        }
+
+        public static bool operator ==(FileReference a, FileReference b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+            if ((object)a == null || (object)b == null)
+                return false;
+            return a.RawId == b.RawId;
+        }
+
+        public static bool operator !=(FileReference a, FileReference b)
+        {
+            return !(a == b);
         }
     }
 }

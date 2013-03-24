@@ -206,6 +206,8 @@ namespace NTFSLib.Objects.Attributes
 
         public virtual int GetSaveLength()
         {
+            throw new NotImplementedException();
+
             if (Type == AttributeType.EndOfAttributes)
                 return 4;
 
@@ -225,6 +227,8 @@ namespace NTFSLib.Objects.Attributes
 
         public virtual void Save(byte[] buffer, int offset)
         {
+            throw new NotImplementedException();
+
             Debug.Assert(buffer.Length - offset >= GetSaveLength());
             Debug.Assert(offset >= 0);
 
