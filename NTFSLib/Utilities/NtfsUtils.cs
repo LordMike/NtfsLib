@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using NTFSLib.NTFS;
 using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Specials;
+using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.Utilities
 {
@@ -76,7 +78,12 @@ namespace NTFSLib.Utilities
 
         public static AttributeFileName GetPreferredDisplayName(FileRecord record)
         {
-            return record.Attributes.OfType<AttributeFileName>().OrderByDescending(s => s.FilenameNamespace, new FileNamespaceComparer()).FirstOrDefault();
+            return GetPreferredDisplayName(record.Attributes);
+        }
+
+        public static AttributeFileName GetPreferredDisplayName(IEnumerable<Attribute> attributes)
+        {
+            return attributes.OfType<AttributeFileName>().OrderByDescending(s => s.FilenameNamespace, new FileNamespaceComparer()).FirstOrDefault();
         }
     }
 }

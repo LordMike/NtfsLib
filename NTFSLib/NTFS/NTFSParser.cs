@@ -9,7 +9,6 @@ using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
-using NTFSLib.Utilities;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.NTFS
@@ -24,11 +23,10 @@ namespace NTFSLib.NTFS
 
         private uint _sectorsPrRecord;
         public uint BytesPrFileRecord { get; private set; }
-        public uint BytesPrCluster
-        {
-            get { return (uint)(_boot.BytesPrSector * _boot.SectorsPrCluster); }
-        }
+        public uint BytesPrCluster { get { return (uint)(_boot.BytesPrSector * _boot.SectorsPrCluster); } }
         public uint BytesPrSector { get { return _boot.BytesPrSector; } }
+        public ulong TotalSectors { get { return _boot.TotalSectors; } }
+        public ulong TotalClusters { get { return _boot.TotalSectors / _boot.SectorsPrCluster; } }
 
         public bool OwnsDiskStream
         {
