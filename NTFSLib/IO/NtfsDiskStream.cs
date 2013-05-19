@@ -24,7 +24,7 @@ namespace NTFSLib.IO
             get { return _position >= _length; }
         }
 
-        internal NtfsDiskStream(Stream diskStream, bool ownsStream, DataFragment[] fragments, uint bytesPrCluster, ushort compressionClusterCount, long length)
+        public NtfsDiskStream(Stream diskStream, bool ownsStream, DataFragment[] fragments, uint bytesPrCluster, ushort compressionClusterCount, long length)
         {
             _diskStream = diskStream;
             _ownsStream = ownsStream;

@@ -6,6 +6,7 @@ namespace NTFSLib.NTFS
     {
         uint BytesPrCluster { get; }
         uint BytesPrSector { get; }
+        byte SectorsPrCluster { get; }
 
         bool OwnsDiskStream { get; }
         Stream GetDiskStream();

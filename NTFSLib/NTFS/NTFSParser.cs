@@ -25,6 +25,7 @@ namespace NTFSLib.NTFS
         public uint BytesPrFileRecord { get; private set; }
         public uint BytesPrCluster { get { return (uint)(_boot.BytesPrSector * _boot.SectorsPrCluster); } }
         public uint BytesPrSector { get { return _boot.BytesPrSector; } }
+        public byte SectorsPrCluster { get { return _boot.SectorsPrCluster; } }
         public ulong TotalSectors { get { return _boot.TotalSectors; } }
         public ulong TotalClusters { get { return _boot.TotalSectors / _boot.SectorsPrCluster; } }
 
@@ -99,7 +100,7 @@ namespace NTFSLib.NTFS
             _usedRecords = bitmapAttrib.Bitfield;
         }
 
-        private void ParseNonResidentAttribute(Attribute attr)
+        public void ParseNonResidentAttribute(Attribute attr)
         {
             if (attr.NonResidentFlag == ResidentFlag.NonResident && attr.NonResidentHeader.Fragments.Length > 0)
                 // Get data

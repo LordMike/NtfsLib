@@ -38,6 +38,7 @@ namespace NTFSLib.NTFS
             get { return (uint)(Boot.BytesPrSector * Boot.SectorsPrCluster); }
         }
         public uint BytesPrSector { get { return Boot.BytesPrSector; } }
+        public byte SectorsPrCluster { get { return Boot.SectorsPrCluster; } }
 
         public bool OwnsDiskStream
         {
@@ -82,7 +83,7 @@ namespace NTFSLib.NTFS
                 byte[] data = new byte[512];
                 Provider.ReadBytes(data, 0, 0, data.Length);
 
-                Boot.MFTRecordSizeBytes = FileRecord.ParseAllocatedSize(data,0);
+                Boot.MFTRecordSizeBytes = FileRecord.ParseAllocatedSize(data, 0);
 
             }
             else
