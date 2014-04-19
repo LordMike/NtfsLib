@@ -110,7 +110,7 @@ namespace NTFSLib.IO
                 throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
 
             // Get all DATA attributes
-            List<AttributeData> dataAttribs = MFTRecord.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
+            List<AttributeData> dataAttribs = MFTRecord.Attributes.Concat(MFTRecord.ExternalAttributes).OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
 
             Debug.Assert(dataAttribs.Count >= 1);
             if (dataAttribs.Count > 1)
