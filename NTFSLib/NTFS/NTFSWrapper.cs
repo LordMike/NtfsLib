@@ -101,7 +101,7 @@ namespace NTFSLib.NTFS
             Debug.WriteLine("Updated BytesPrFileRecord, now set to " + BytesPrFileRecord);
 
             // Prep cache
-            MftRawCache = new RawDiskCache((int)(_rawDiskCacheSizeRecords * BytesPrFileRecord));
+            MftRawCache = new RawDiskCache(0);
 
             // Read $MFT file record
             {
@@ -115,6 +115,11 @@ namespace NTFSLib.NTFS
             Debug.Assert(fileMftData.DataFragments.Length >= 1);
 
             MftStream = OpenFileRecord(FileMFT);
+
+            // Prep cache
+            long maxLength = MftStream.Length;
+            long toAllocateForCache = Math.Min(maxLength, _rawDiskCacheSizeRecords * BytesPrFileRecord);
+            MftRawCache = new RawDiskCache((int)toAllocateForCache);
 
             // Get number of FileRecords 
             FileRecordCount = (uint)((fileMftData.DataFragments.Sum(s => (float)s.Clusters)) * (BytesPrCluster * 1f / BytesPrFileRecord));
@@ -139,6 +144,7 @@ namespace NTFSLib.NTFS
         {
             Debug.Assert(MftStream != null);
             Debug.Assert(BytesPrFileRecord > 0);
+            Debug.Assert(number < FileRecordCount);
 
             uint offset = number * BytesPrFileRecord;
             int toRead = (int)Math.Min(MftStream.Length - offset, MftRawCache.Data.Length);
