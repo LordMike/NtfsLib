@@ -9,6 +9,7 @@ using NTFSLib.Objects;
 using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Specials;
+using NTFSLib.Provider;
 using Attribute = NTFSLib.Objects.Attributes.Attribute;
 
 namespace NTFSLib.NTFS
@@ -63,6 +64,7 @@ namespace NTFSLib.NTFS
             BytesPrFileRecord = _boot.MFTRecordSizeBytes;
             _sectorsPrRecord = _boot.MFTRecordSizeBytes / _boot.BytesPrSector;
         }
+
         private void InitiateMFT()
         {
             // Read first FileRecord
@@ -88,6 +90,7 @@ namespace NTFSLib.NTFS
             CurrentMftRecordNumber = 0;
             FileRecordCount = (uint)(_mftStream.Length / BytesPrFileRecord);
         }
+
         public void InitiateRecordBitarray()
         {
             if (_usedRecords != null)
@@ -162,6 +165,33 @@ namespace NTFSLib.NTFS
 
                 yield return record;
             }
+        }
+
+        public Stream OpenFileDataStream(Stream diskStream, FileRecord record, string dataStream = "")
+        {
+            Debug.Assert(record != null);
+
+            // Get all DATA attributes
+            List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
+
+            if (!dataAttribs.Any())
+            {
+                return new MemoryStream();
+            }
+
+            if (dataAttribs.Count == 1 && dataAttribs[0].NonResidentFlag == ResidentFlag.Resident)
+            {
+                return new MemoryStream(dataAttribs[0].DataBytes);
+            }
+
+            Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
+
+            DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
+
+            ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
+            ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
+
+            return new NtfsDiskStream(diskStream, true, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
         }
     }
 }
