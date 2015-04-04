@@ -4,6 +4,7 @@ NTFS Library to parse NTFS structures and filesystems. I primarily made this pro
 This library mainly focuses on parsing the MFT (master file table) and as such it ignores journaling, security descriptors and other similar topics. My main goal was to be able to parse a filesystem in such a way that I could read it - and by far the MFT is he most important part of NTFS.
 
 I did this project some two years ago, but I never got around to opensourcing it. I now have.
+Please not that this project is provided as-is, and is not subject to any form of support. I find the project educational, and have used it from time to time to diagnose issues with NTFS filesystems or copy out protected files (NtfsDetails and NtfsCopy) - but I have also discovered issues with some filesystems.
 
 # Structure
 All NTFS code resides in the NTFSLib project, which houses both parsing and the structures themselves. This library also holds two wrappers around the NTFS filesystem to help users get started, namely NTFSParser (sequential filerecord parsing) and NTFSWrapper (more direct file and directory access).
