@@ -405,10 +405,10 @@ namespace NtfsDetails
                 case AttributeType.STANDARD_INFORMATION:
                     AttributeStandardInformation standardInformation = (AttributeStandardInformation)attrib;
 
-                    AwesomeConsole.WriteLine(indent + "Creation Time: " + standardInformation.TimeCreated);
-                    AwesomeConsole.WriteLine(indent + "Modified Time: " + standardInformation.TimeModified);
-                    AwesomeConsole.WriteLine(indent + "Accessed Time: " + standardInformation.TimeAccessed);
-                    AwesomeConsole.WriteLine(indent + "Mft Modified : " + standardInformation.TimeMftModified);
+                    AwesomeConsole.WriteLine(indent + "Creation Time: " + standardInformation.TimeCreated + " " + standardInformation.TimeCreated.Kind);
+                    AwesomeConsole.WriteLine(indent + "Modified Time: " + standardInformation.TimeModified + " " + standardInformation.TimeModified.Kind);
+                    AwesomeConsole.WriteLine(indent + "Accessed Time: " + standardInformation.TimeAccessed + " " + standardInformation.TimeAccessed.Kind);
+                    AwesomeConsole.WriteLine(indent + "Mft Modified : " + standardInformation.TimeMftModified + " " + standardInformation.TimeMftModified.Kind);
 
                     break;
                 case AttributeType.ATTRIBUTE_LIST:
@@ -450,6 +450,11 @@ namespace NtfsDetails
                     AwesomeConsole.Write(indent + "Name: ");
                     PrintName(fileName.FileName, false, true);
                     AwesomeConsole.WriteLine();
+
+                    AwesomeConsole.WriteLine(indent + "C Time: " + fileName.CTime + " " + fileName.CTime.Kind);
+                    AwesomeConsole.WriteLine(indent + "M Time: " + fileName.MTime + " " + fileName.MTime.Kind);
+                    AwesomeConsole.WriteLine(indent + "A Time: " + fileName.ATime + " " + fileName.ATime.Kind);
+                    AwesomeConsole.WriteLine(indent + "R Time: " + fileName.RTime + " " + fileName.RTime.Kind);
 
                     break;
                 case AttributeType.DATA:
