@@ -34,6 +34,6 @@ I've largely discovered the details about NTFS that I needed to complete this pr
 
 **MSDN** contains a lot of information on the individual structures of NTFS. A good starting point [is here](https://msdn.microsoft.com/en-us/library/bb470206%28v=vs.85%29.aspx).
 
-**R-TT's R-Studio** recovery tool. This tool allows you to view the disk with a hex editor, and overlay templates containing file structures (much like some other fancy hex editors today). I found R-Studios templates to be very informing (and sometimes incorrect). Having a good hex editor / viewer is crucial when parsing binary data structures.
+**R-TT's R-Studio** recovery tool. [This tool](http://www.r-studio.com/) allows you to view the disk with a hex editor, and overlays templates containing file structures (much like some other fancy hex editors today). I found R-Studios templates to be very informing (and sometimes incorrect). Having a good hex editor / viewer is crucial when parsing binary data structures. 
 
 **Other sources** [Wikipedia](https://en.wikipedia.org/wiki/NTFS), various [Google searches](https://www.google.dk/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#safe=off&q=ntfs+forensics) .. and many more (remember, this was two years ago :)).
