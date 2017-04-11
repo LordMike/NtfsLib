@@ -1,6 +1,0 @@
-[submodule "DeviceIOControlLib"]
-	path = DeviceIOControlLib
-	url = git@github.com:LordMike/DeviceIOControlLib.git
-[submodule "RawDiskLib"]
-	path = RawDiskLib
-	url = git@github.com:LordMike/RawDiskLib.git
