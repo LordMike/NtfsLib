@@ -129,7 +129,7 @@ namespace NtfsDetails
                 Drive = PathArgument[0];
             }
 
-            char[] volumes = Utils.GetAllAvailableVolumes();
+            char[] volumes = Utils.GetAllAvailableVolumes().ToArray();
 
             if (!volumes.Contains(Drive))
             {
