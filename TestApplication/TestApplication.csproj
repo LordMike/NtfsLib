@@ -35,6 +35,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeviceIOControlLib, Version=0.1.1.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
+      <HintPath>..\packages\DeviceIOControlLib.0.1.1\lib\net40\DeviceIOControlLib.dll</HintPath>
+    </Reference>
+    <Reference Include="RawDiskLib, Version=0.1.4.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
+      <HintPath>..\packages\RawDiskLib.0.1.4\lib\net40\RawDiskLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -51,13 +57,10 @@
       <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
       <Name>NTFSLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RawDiskLib\RawDiskLib\RawDiskLib.csproj">
-      <Project>{5e9aa56e-6428-4ded-97a2-c51c51a6ea89}</Project>
-      <Name>RawDiskLib</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

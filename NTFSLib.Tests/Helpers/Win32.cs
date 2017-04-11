@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using DeviceIOControlLib;
+using DeviceIOControlLib.Wrapper;
 using Microsoft.Win32.SafeHandles;
 using FileAttributes = System.IO.FileAttributes;
 
@@ -30,9 +31,9 @@ namespace NTFSLib.Tests.Helpers
             return handle;
         }
 
-        public static DeviceIOControlWrapper GetFileWrapper(string fileName)
+        public static FilesystemDeviceWrapper GetFileWrapper(string fileName)
         {
-            return new DeviceIOControlWrapper(CreateFile(fileName), true);
+            return new FilesystemDeviceWrapper(CreateFile(fileName), true);
         }
     }
 }

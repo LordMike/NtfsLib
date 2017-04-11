@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DeviceIOControlLib;
+using DeviceIOControlLib.Objects.FileSystem;
+using DeviceIOControlLib.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTFSLib.Helpers;
 using NTFSLib.IO;
@@ -68,7 +70,7 @@ namespace NTFSLib.Tests
                 // Create a file
                 File.WriteAllBytes(tmpFile.File.FullName, randomData);
 
-                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
+                using (FilesystemDeviceWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
                 {
                     wrapper.FileSystemSetSparseFile(true);
                     wrapper.FileSystemSetZeroData(16 * 4096, 16 * 4096);
@@ -124,7 +126,7 @@ namespace NTFSLib.Tests
                     }
                 }
 
-                using (DeviceIOControlWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
+                using (FilesystemDeviceWrapper wrapper = Win32.GetFileWrapper(tmpFile.File.FullName))
                 {
                     wrapper.FileSystemSetCompression(COMPRESSION_FORMAT.LZNT1);
                 }

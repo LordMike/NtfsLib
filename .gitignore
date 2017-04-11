@@ -31,3 +31,5 @@ obj/
 _ReSharper*/
 Backup Files/
 [Tt]est[Rr]esult*
+
+packages/

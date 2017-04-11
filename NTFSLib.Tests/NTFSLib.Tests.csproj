@@ -35,6 +35,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeviceIOControlLib, Version=0.1.1.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
+      <HintPath>..\packages\DeviceIOControlLib.0.1.1\lib\net40\DeviceIOControlLib.dll</HintPath>
+    </Reference>
+    <Reference Include="RawDiskLib, Version=0.1.4.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
+      <HintPath>..\packages\RawDiskLib.0.1.4\lib\net40\RawDiskLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -76,14 +82,10 @@
       <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
       <Name>NTFSLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RawDiskLib\DeviceIOControlLib\DeviceIOControlLib\DeviceIOControlLib.csproj">
-      <Project>{303f50c6-4ebb-45c5-bfea-f5f39caf0410}</Project>
-      <Name>DeviceIOControlLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\RawDiskLib\RawDiskLib\RawDiskLib.csproj">
-      <Project>{5E9AA56E-6428-4DED-97A2-C51C51A6EA89}</Project>
-      <Name>RawDiskLib</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
